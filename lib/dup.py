@@ -1,0 +1,315 @@
+import re
+import json
+
+data = [  {"id":"h01","category":"history","d":1,"q":"Who was the first President of the United States?","a":["George Washington","Thomas Jefferson","Abraham Lincoln","Benjamin Franklin"],"c":0,"f":"Washington served two terms from 1789 to 1797."},
+  {"id":"h02","category":"history","d":1,"q":"In which year did World War II end?","a":["1943","1944","1945","1946"],"c":2,"f":"VE Day was May 8 and VJ Day was August 15, 1945."},
+  {"id":"h03","category":"history","d":1,"q":"Which ancient wonder was located in Alexandria?","a":["Colossus of Rhodes","Temple of Artemis","Lighthouse of Alexandria","Hanging Gardens"],"c":2,"f":"It stood ~137 m tall — one of the tallest structures of the ancient world."},
+  {"id":"h07","category":"history","d":1,"q":"Who painted the Sistine Chapel ceiling?","a":["Leonardo da Vinci","Raphael","Michelangelo","Donatello"],"c":2,"f":"Michelangelo painted it between 1508 and 1512, lying on his back on scaffolding."},
+  {"id":"h12","category":"history","d":1,"q":"Which country did Germany invade to start World War II?","a":["France","Russia","Poland","Belgium"],"c":2,"f":"Germany invaded Poland on September 1, 1939."},
+  {"id":"h15","category":"history","d":1,"q":"Who was the first man to walk on the Moon?","a":["Buzz Aldrin","Yuri Gagarin","Neil Armstrong","John Glenn"],"c":2,"f":"Armstrong stepped onto the lunar surface on July 21, 1969."},
+  {"id":"s01","category":"science","d":1,"q":"What is the chemical symbol for gold?","a":["Go","Gd","Au","Ag"],"c":2,"f":"Au comes from the Latin word 'aurum'."},
+  {"id":"s02","category":"science","d":1,"q":"How many bones are in the adult human body?","a":["196","206","216","226"],"c":1,"f":"Babies have around 270 bones that fuse as they grow."},
+  {"id":"s03","category":"science","d":1,"q":"What planet is known as the Red Planet?","a":["Venus","Jupiter","Mars","Saturn"],"c":2,"f":"Mars gets its reddish color from iron oxide (rust) on its surface."},
+  {"id":"s10","category":"science","d":1,"q":"How many planets are in our solar system?","a":["7","8","9","10"],"c":1,"f":"Pluto was reclassified as a dwarf planet in 2006, leaving 8 planets."},
+  {"id":"s13","category":"science","d":1,"q":"What force keeps planets in orbit around the Sun?","a":["Magnetism","Nuclear force","Gravity","Friction"],"c":2,"f":"Gravity was described by Newton's law of universal gravitation in 1687."},
+  {"id":"g01","category":"geography","d":1,"q":"What is the capital of Australia?","a":["Sydney","Melbourne","Brisbane","Canberra"],"c":3,"f":"Canberra was purpose-built as the capital as a compromise between Sydney and Melbourne."},
+  {"id":"g02","category":"geography","d":1,"q":"Which is the longest river in the world?","a":["Amazon","Congo","Nile","Yangtze"],"c":2,"f":"The Nile stretches approximately 6,650 km through northeastern Africa."},
+  {"id":"g03","category":"geography","d":1,"q":"Which country has the largest land area?","a":["Canada","USA","China","Russia"],"c":3,"f":"Russia spans 17.1 million km² — about 11% of the world's land area."},
+  {"id":"g07","category":"geography","d":1,"q":"What is the capital of Japan?","a":["Osaka","Kyoto","Hiroshima","Tokyo"],"c":3,"f":"Tokyo is the world's most populous metropolitan area with ~37 million people."},
+  {"id":"g10","category":"geography","d":1,"q":"How many continents are there on Earth?","a":["5","6","7","8"],"c":2,"f":"The 7 continents are Africa, Antarctica, Asia, Australia, Europe, North & South America."},
+  {"id":"a01","category":"arts","d":1,"q":"Who painted the 'Starry Night'?","a":["Pablo Picasso","Claude Monet","Vincent van Gogh","Salvador Dali"],"c":2,"f":"Van Gogh painted it in June 1889 while at an asylum in Saint-Rémy-de-Provence."},
+  {"id":"a02","category":"arts","d":1,"q":"Who composed the 'Fifth Symphony'?","a":["Mozart","Bach","Beethoven","Handel"],"c":2,"f":"Beethoven composed his 5th Symphony between 1804 and 1808."},
+  {"id":"a05","category":"arts","d":1,"q":"The Louvre museum is located in which city?","a":["Rome","London","Paris","Madrid"],"c":2,"f":"The Louvre is the world's most visited art museum with ~9 million visitors/year."},
+  {"id":"a08","category":"arts","d":1,"q":"Who wrote the play 'Hamlet'?","a":["Charles Dickens","William Shakespeare","Oscar Wilde","George Bernard Shaw"],"c":1,"f":"Hamlet was written around 1600–1601 and is Shakespeare's longest play."},
+  {"id":"a11","category":"arts","d":1,"q":"Which instrument has 88 keys?","a":["Organ","Harpsichord","Piano","Accordion"],"c":2,"f":"A standard piano has 52 white and 36 black keys spanning 7 octaves."},
+  {"id":"sp01","category":"sports","d":1,"q":"How many players are on a standard football (soccer) team?","a":["9","10","11","12"],"c":2,"f":"Each team fields 11 players including the goalkeeper."},
+  {"id":"sp02","category":"sports","d":1,"q":"In which country did the Olympic Games originate?","a":["Italy","Egypt","Greece","Turkey"],"c":2,"f":"The ancient Olympics were held at Olympia, Greece, from 776 BC."},
+  {"id":"sp05","category":"sports","d":1,"q":"How many rings are on the Olympic flag?","a":["4","5","6","7"],"c":1,"f":"The 5 rings represent the 5 continents of the world united by the Olympic movement."},
+  {"id":"sp08","category":"sports","d":1,"q":"Michael Jordan played for which NBA team for most of his career?","a":["LA Lakers","Boston Celtics","Chicago Bulls","Miami Heat"],"c":2,"f":"Jordan won 6 NBA championships with the Bulls in 1991–93 and 1996–98."},
+  {"id":"sp12","category":"sports","d":1,"q":"Which country hosted the 2016 Summer Olympics?","a":["China","USA","Brazil","UK"],"c":2,"f":"The 2016 Olympics were held in Rio de Janeiro — the first in South America."},
+  {"id":"p01","category":"pop","d":1,"q":"Which band performed 'Bohemian Rhapsody'?","a":["The Beatles","Led Zeppelin","Queen","The Rolling Stones"],"c":2,"f":"Bohemian Rhapsody was released in 1975 and lasted nearly 6 minutes — unusual for pop radio."},
+  {"id":"p02","category":"pop","d":1,"q":"Who played Iron Man in the Marvel Cinematic Universe?","a":["Chris Evans","Robert Downey Jr.","Chris Hemsworth","Mark Ruffalo"],"c":1,"f":"RDJ debuted as Tony Stark in 'Iron Man' (2008) and appeared in 10 MCU films."},
+  {"id":"p04","category":"pop","d":1,"q":"'Friends' is set primarily in which US city?","a":["Los Angeles","Chicago","Boston","New York City"],"c":3,"f":"The gang hung out at Central Perk coffee shop and Monica's apartment in Greenwich Village."},
+  {"id":"p06","category":"pop","d":1,"q":"What is the highest-grossing film of all time (unadjusted)?","a":["Titanic","Avengers: Endgame","Avatar","The Lion King"],"c":2,"f":"James Cameron's Avatar (2009, re-releases) holds the record at ~$2.9 billion."},
+  {"id":"p10","category":"pop","d":1,"q":"Which social media platform used a blue bird as its logo?","a":["Instagram","Facebook","Twitter","Snapchat"],"c":2,"f":"The Twitter bird logo, named 'Larry', was replaced by an 'X' in 2023 by Elon Musk."},
+  {"id":"t01","category":"tech","d":1,"q":"Who co-founded Apple Inc. with Steve Wozniak?","a":["Bill Gates","Steve Jobs","Jeff Bezos","Elon Musk"],"c":1,"f":"Jobs, Wozniak and Ronald Wayne founded Apple on April 1, 1976."},
+  {"id":"t02","category":"tech","d":1,"q":"What does 'WWW' stand for in a web address?","a":["World Wide Web","World Wireless Web","Wide World Web","World Wide Wire"],"c":0,"f":"Tim Berners-Lee invented the World Wide Web in 1989 at CERN."},
+  {"id":"t05","category":"tech","d":1,"q":"What does 'CPU' stand for?","a":["Central Processing Unit","Computer Power Unit","Core Processing Utility","Central Program Unit"],"c":0,"f":"The CPU is often called the 'brain' of a computer."},
+  {"id":"t10","category":"tech","d":1,"q":"How many bits are in a byte?","a":["4","8","16","32"],"c":1,"f":"A byte is 8 bits. A kilobyte is 1,024 bytes."},
+  {"id":"l01","category":"literature","d":1,"q":"Who wrote '1984'?","a":["Aldous Huxley","George Orwell","Ray Bradbury","Kurt Vonnegut"],"c":1,"f":"Orwell wrote 1984 in 1948 — reversing the year. It was published in 1949."},
+  {"id":"l02","category":"literature","d":1,"q":"Who wrote 'Pride and Prejudice'?","a":["Charlotte Brontë","Mary Shelley","Jane Austen","Virginia Woolf"],"c":2,"f":"Jane Austen published Pride and Prejudice in 1813."},
+  {"id":"l07","category":"literature","d":1,"q":"Who wrote 'Don Quixote'?","a":["Lope de Vega","Miguel de Cervantes","Pablo Neruda","Gabriel García Márquez"],"c":1,"f":"Published in 1605, Don Quixote is often cited as the first modern novel."},
+
+
+
+
+{"id":"q01","category":"science","d":1,"q":"What planet do we live on?","a":["Mars","Earth","Venus","Jupiter"],"c":1,"f":"We live on Earth."},
+  {"id":"q02","category":"history","d":1,"q":"Who was the first President of the USA?","a":["Lincoln","Washington","Jefferson","Adams"],"c":1,"f":"George Washington was the first president."},
+  {"id":"q03","category":"sports","d":1,"q":"How many players are in a soccer team?","a":["9","10","11","12"],"c":2,"f":"There are 11 players."},
+  {"id":"q04","category":"arts","d":1,"q":"Who painted the Mona Lisa?","a":["Van Gogh","Da Vinci","Picasso","Monet"],"c":1,"f":"Leonardo da Vinci painted it."},
+  {"id":"q05","category":"science","d":1,"q":"What is H2O?","a":["Salt","Water","Oxygen","Hydrogen"],"c":1,"f":"H2O is water."},
+  {"id":"q06","category":"geography","d":1,"q":"What is the capital of France?","a":["Paris","Rome","Berlin","Madrid"],"c":0,"f":"Paris is the capital."},
+  {"id":"q07","category":"pop","d":1,"q":"Who is Batman?","a":["Hero","Villain","Doctor","Teacher"],"c":0,"f":"Batman is a superhero."},
+  {"id":"q08","category":"history","d":1,"q":"Which war ended in 1945?","a":["WWI","WWII","Cold War","Vietnam War"],"c":1,"f":"World War II ended in 1945."},
+  {"id":"q09","category":"tech","d":1,"q":"What does CPU stand for?","a":["Central Processing Unit","Core Power Unit","Computer Personal Unit","Central Program Unit"],"c":0,"f":"CPU is the brain of a computer."},
+  {"id":"q10","category":"science","d":1,"q":"What do plants need to grow?","a":["Plastic","Sunlight","Metal","Glass"],"c":1,"f":"Plants need sunlight."},
+
+  {"id":"q11","category":"sports","d":1,"q":"How long is a soccer match?","a":["60","70","90","100"],"c":2,"f":"90 minutes."},
+  {"id":"q12","category":"geography","d":1,"q":"Which ocean is the largest?","a":["Atlantic","Pacific","Indian","Arctic"],"c":1,"f":"Pacific is the largest ocean."},
+  {"id":"q13","category":"arts","d":1,"q":"How many colors are in a rainbow?","a":["5","6","7","8"],"c":2,"f":"There are 7 colors."},
+  {"id":"q14","category":"history","d":1,"q":"Who walked on the Moon first?","a":["Armstrong","Aldrin","Collins","Gagarin"],"c":0,"f":"Neil Armstrong was first."},
+  {"id":"q15","category":"science","d":1,"q":"What gas do humans breathe in?","a":["Carbon Dioxide","Oxygen","Helium","Hydrogen"],"c":1,"f":"Humans breathe oxygen."},
+  {"id":"q16","category":"pop","d":1,"q":"Which company made iPhone?","a":["Samsung","Apple","Google","Microsoft"],"c":1,"f":"Apple made the iPhone."},
+  {"id":"q17","category":"geography","d":1,"q":"What is the capital of Japan?","a":["Osaka","Kyoto","Tokyo","Seoul"],"c":2,"f":"Tokyo is the capital."},
+  {"id":"q18","category":"tech","d":1,"q":"What does WiFi provide?","a":["Food","Internet","Water","Heat"],"c":1,"f":"WiFi gives internet."},
+  {"id":"q19","category":"sports","d":1,"q":"How many rings in Olympics flag?","a":["3","4","5","6"],"c":2,"f":"There are 5 rings."},
+  {"id":"q20","category":"history","d":1,"q":"Which empire built the Colosseum?","a":["Greek","Roman","Ottoman","Persian"],"c":1,"f":"Romans built it."},
+
+  {"id":"q21","category":"science","d":1,"q":"What is the Sun?","a":["Planet","Star","Moon","Comet"],"c":1,"f":"The Sun is a star."},
+  {"id":"q22","category":"arts","d":1,"q":"Which instrument has keys?","a":["Drum","Piano","Flute","Violin"],"c":1,"f":"Piano has keys."},
+  {"id":"q23","category":"geography","d":1,"q":"How many continents are there?","a":["5","6","7","8"],"c":2,"f":"There are 7 continents."},
+  {"id":"q24","category":"pop","d":1,"q":"Who is Spider-Man?","a":["Hero","Villain","Doctor","Pilot"],"c":0,"f":"Spider-Man is a superhero."},
+  {"id":"q25","category":"science","d":1,"q":"What pulls things down?","a":["Wind","Gravity","Light","Sound"],"c":1,"f":"Gravity pulls objects down."},
+  {"id":"q26","category":"history","d":1,"q":"Where did Olympics start?","a":["Italy","Greece","Egypt","France"],"c":1,"f":"They started in Greece."},
+  {"id":"q27","category":"tech","d":1,"q":"What is used to browse internet?","a":["Browser","Printer","Mouse","Cable"],"c":0,"f":"A browser opens websites."},
+  {"id":"q28","category":"sports","d":1,"q":"Which sport uses a bat?","a":["Cricket","Swimming","Running","Golf"],"c":0,"f":"Cricket uses a bat."},
+  {"id":"q29","category":"arts","d":1,"q":"What color is the sky usually?","a":["Red","Blue","Green","Black"],"c":1,"f":"The sky is blue."},
+  {"id":"q30","category":"geography","d":1,"q":"Which country is shaped like a boot?","a":["Spain","Italy","Greece","USA"],"c":1,"f":"Italy is shaped like a boot."},
+
+  {"id":"q31","category":"science","d":1,"q":"How many legs does a spider have?","a":["6","8","10","12"],"c":1,"f":"Spiders have 8 legs."},
+  {"id":"q32","category":"history","d":1,"q":"Who discovered gravity?","a":["Einstein","Newton","Tesla","Galileo"],"c":1,"f":"Isaac Newton described gravity."},
+  {"id":"q33","category":"pop","d":1,"q":"Which is a Disney character?","a":["Mickey Mouse","Harry Potter","Batman","Shrek"],"c":0,"f":"Mickey Mouse is Disney."},
+  {"id":"q34","category":"tech","d":1,"q":"What does AI stand for?","a":["Auto Input","Artificial Intelligence","Active Internet","Analog Interface"],"c":1,"f":"AI is Artificial Intelligence."},
+  {"id":"q35","category":"science","d":1,"q":"What is ice?","a":["Hot water","Frozen water","Gas","Stone"],"c":1,"f":"Ice is frozen water."},
+  {"id":"q36","category":"geography","d":1,"q":"What is capital of USA?","a":["NYC","Washington DC","LA","Chicago"],"c":1,"f":"Washington DC is the capital."},
+  {"id":"q37","category":"sports","d":1,"q":"Which sport is played in water?","a":["Tennis","Swimming","Football","Golf"],"c":1,"f":"Swimming is in water."},
+  {"id":"q38","category":"arts","d":1,"q":"What do musicians read?","a":["Books","Notes","Maps","Code"],"c":1,"f":"They read musical notes."},
+  {"id":"q39","category":"history","d":1,"q":"Which wall divided Berlin?","a":["Great Wall","Berlin Wall","Iron Wall","Stone Wall"],"c":1,"f":"Berlin Wall divided Germany."},
+  {"id":"q40","category":"science","d":1,"q":"What organ pumps blood?","a":["Brain","Heart","Lungs","Liver"],"c":1,"f":"The heart pumps blood."},
+
+  {"id":"q41","category":"pop","d":1,"q":"Which movie has Elsa?","a":["Frozen","Shrek","Moana","Cars"],"c":0,"f":"Elsa is in Frozen."},
+  {"id":"q42","category":"geography","d":1,"q":"Which continent has kangaroos?","a":["Africa","Australia","Europe","Asia"],"c":1,"f":"Australia has kangaroos."},
+  {"id":"q43","category":"science","d":1,"q":"What is main gas in air?","a":["Oxygen","Nitrogen","Helium","Carbon"],"c":1,"f":"Air is mostly nitrogen."},
+  {"id":"q44","category":"history","d":1,"q":"Which country built pyramids?","a":["Greece","Egypt","Rome","China"],"c":1,"f":"Egypt built pyramids."},
+  {"id":"q45","category":"sports","d":1,"q":"How many players in basketball team?","a":["4","5","6","7"],"c":1,"f":"5 players per team."},
+  {"id":"q46","category":"tech","d":1,"q":"What does RAM do?","a":["Stores temporary data","Prints","Cools PC","Connects internet"],"c":0,"f":"RAM stores temporary data."},
+  {"id":"q47","category":"arts","d":1,"q":"Which shape has 3 sides?","a":["Square","Circle","Triangle","Hexagon"],"c":2,"f":"Triangle has 3 sides."},
+  {"id":"q48","category":"science","d":1,"q":"What is the main source of light?","a":["Moon","Sun","Stars","Fire"],"c":1,"f":"The Sun is main light source."},
+  {"id":"q49","category":"geography","d":1,"q":"Which desert is largest?","a":["Sahara","Gobi","Kalahari","Arctic"],"c":0,"f":"Sahara is largest hot desert."},
+
+
+
+
+
+{"id":"q51","category":"science","d":1,"q":"What do humans breathe in?","a":["Oxygen","Carbon Dioxide","Hydrogen","Helium"],"c":0,"f":"Humans breathe oxygen."},
+  {"id":"q52","category":"history","d":1,"q":"Which city is known as the Big Apple?","a":["London","Paris","New York","Rome"],"c":2,"f":"New York City is called the Big Apple."},
+  {"id":"q53","category":"geography","d":1,"q":"Which country has the Eiffel Tower?","a":["Italy","Spain","France","Germany"],"c":2,"f":"The Eiffel Tower is in France."},
+  {"id":"q54","category":"sports","d":1,"q":"What sport uses a ball and goals?","a":["Basketball","Football","Tennis","Golf"],"c":1,"f":"Football uses goals."},
+  {"id":"q55","category":"arts","d":1,"q":"What do you use to paint?","a":["Brush","Knife","Spoon","Pen"],"c":0,"f":"A brush is used for painting."},
+  {"id":"q56","category":"pop","d":1,"q":"Which superhero can climb walls?","a":["Batman","Spider-Man","Iron Man","Hulk"],"c":1,"f":"Spider-Man can climb walls."},
+  {"id":"q57","category":"science","d":1,"q":"How many days are in a year?","a":["360","365","370","375"],"c":1,"f":"A year has 365 days."},
+  {"id":"q58","category":"geography","d":1,"q":"Which continent is Germany in?","a":["Asia","Europe","Africa","Australia"],"c":1,"f":"Germany is in Europe."},
+  {"id":"q59","category":"history","d":1,"q":"Which ship sank in 1912?","a":["Titanic","Bismarck","Mayflower","Santa Maria"],"c":0,"f":"The Titanic sank in 1912."},
+  {"id":"q60","category":"tech","d":1,"q":"What is used to type on a computer?","a":["Mouse","Keyboard","Screen","Cable"],"c":1,"f":"Keyboard is used for typing."},
+
+  {"id":"q61","category":"science","d":1,"q":"What planet is red?","a":["Earth","Mars","Venus","Saturn"],"c":1,"f":"Mars is called the Red Planet."},
+  {"id":"q62","category":"sports","d":1,"q":"How many hoops in basketball?","a":["1","2","3","4"],"c":0,"f":"There is 1 hoop per side."},
+  {"id":"q63","category":"geography","d":1,"q":"Which country is Japan in?","a":["Europe","Asia","Africa","America"],"c":1,"f":"Japan is in Asia."},
+  {"id":"q64","category":"arts","d":1,"q":"Which instrument has strings?","a":["Drum","Violin","Flute","Trumpet"],"c":1,"f":"Violin has strings."},
+  {"id":"q65","category":"history","d":1,"q":"Who invented the light bulb?","a":["Tesla","Edison","Newton","Einstein"],"c":1,"f":"Thomas Edison improved the light bulb."},
+  {"id":"q66","category":"science","d":1,"q":"What do plants produce?","a":["Oxygen","Smoke","Plastic","Metal"],"c":0,"f":"Plants produce oxygen."},
+  {"id":"q67","category":"pop","d":1,"q":"Which is a cartoon mouse?","a":["Mickey Mouse","Donald Duck","Goofy","Tom"],"c":0,"f":"Mickey Mouse is a cartoon mouse."},
+  {"id":"q68","category":"tech","d":1,"q":"What connects computers?","a":["Network","Paper","Book","Car"],"c":0,"f":"Networks connect computers."},
+  {"id":"q69","category":"geography","d":1,"q":"Which is the largest continent?","a":["Europe","Asia","Africa","Australia"],"c":1,"f":"Asia is the largest continent."},
+  {"id":"q70","category":"sports","d":1,"q":"What sport uses a racket?","a":["Tennis","Swimming","Running","Boxing"],"c":0,"f":"Tennis uses a racket."},
+
+  {"id":"q71","category":"science","d":1,"q":"What is the Moon?","a":["Planet","Star","Satellite","Comet"],"c":2,"f":"The Moon is Earth's satellite."},
+  {"id":"q72","category":"history","d":1,"q":"Which wall fell in 1989?","a":["Great Wall","Berlin Wall","Iron Wall","Stone Wall"],"c":1,"f":"The Berlin Wall fell in 1989."},
+  {"id":"q73","category":"arts","d":1,"q":"What do you call a song text?","a":["Lyrics","Notes","Code","Script"],"c":0,"f":"Song text is called lyrics."},
+  {"id":"q74","category":"geography","d":1,"q":"Which country has pyramids?","a":["Egypt","France","Germany","UK"],"c":0,"f":"Egypt has pyramids."},
+  {"id":"q75","category":"pop","d":1,"q":"Which is a superhero team?","a":["Avengers","Friends","Simpsons","Strangers"],"c":0,"f":"Avengers is a superhero team."},
+  {"id":"q76","category":"science","d":1,"q":"What is the center of Earth called?","a":["Core","Surface","Crust","Cloud"],"c":0,"f":"Earth has a core."},
+  {"id":"q77","category":"sports","d":1,"q":"Which sport uses a ball and bat?","a":["Cricket","Swimming","Gymnastics","Running"],"c":0,"f":"Cricket uses bat and ball."},
+  {"id":"q78","category":"tech","d":1,"q":"What device shows images?","a":["Monitor","Mouse","Cable","Router"],"c":0,"f":"Monitor shows images."},
+  {"id":"q79","category":"geography","d":1,"q":"What is capital of Italy?","a":["Paris","Rome","Madrid","Berlin"],"c":1,"f":"Rome is capital of Italy."},
+  {"id":"q80","category":"history","d":1,"q":"Which country landed first on the Moon?","a":["USA","Russia","China","UK"],"c":0,"f":"USA landed first on the Moon."},
+
+  {"id":"q81","category":"science","d":1,"q":"What do we use to see?","a":["Ears","Eyes","Nose","Hands"],"c":1,"f":"We use eyes to see."},
+  {"id":"q82","category":"sports","d":1,"q":"How many players in basketball team?","a":["3","4","5","6"],"c":2,"f":"5 players play."},
+  {"id":"q83","category":"arts","d":1,"q":"Which color is a mix of blue and yellow?","a":["Green","Purple","Orange","Red"],"c":0,"f":"Blue + yellow = green."},
+  {"id":"q84","category":"tech","d":1,"q":"What is internet used for?","a":["Playing music","Connecting people","Cooking","Sleeping"],"c":1,"f":"Internet connects people."},
+  {"id":"q85","category":"geography","d":1,"q":"Which sea is salty?","a":["Dead Sea","Black Sea","Red Sea","All seas"],"c":3,"f":"All seas are salty."},
+  {"id":"q86","category":"history","d":1,"q":"Who built the Titanic?","a":["USA","UK","France","Germany"],"c":1,"f":"Titanic was built in UK."},
+  {"id":"q87","category":"science","d":1,"q":"What is lightning?","a":["Electricity","Water","Wind","Fire"],"c":0,"f":"Lightning is electricity."},
+  {"id":"q88","category":"pop","d":1,"q":"Which is a popular video game?","a":["Minecraft","Book","Chair","Table"],"c":0,"f":"Minecraft is a game."},
+  {"id":"q89","category":"sports","d":1,"q":"Which sport uses gloves?","a":["Boxing","Swimming","Running","Cycling"],"c":0,"f":"Boxing uses gloves."},
+  {"id":"q90","category":"arts","d":1,"q":"What do you draw with?","a":["Pen","Phone","Cup","Bottle"],"c":0,"f":"Pen is used for drawing."},
+
+  {"id":"q91","category":"science","d":1,"q":"What is the biggest organ?","a":["Heart","Skin","Brain","Liver"],"c":1,"f":"Skin is the largest organ."},
+  {"id":"q92","category":"geography","d":1,"q":"Which continent is USA in?","a":["Asia","Europe","North America","Africa"],"c":2,"f":"USA is in North America."},
+  {"id":"q93","category":"history","d":1,"q":"Who was Napoleon?","a":["King","Emperor","President","Doctor"],"c":1,"f":"Napoleon was Emperor of France."},
+  {"id":"q94","category":"tech","d":1,"q":"What stores files?","a":["Cloud","Chair","Book","Pen"],"c":0,"f":"Cloud storage stores files online."},
+  {"id":"q95","category":"sports","d":1,"q":"Which sport uses a net?","a":["Tennis","Running","Boxing","Gymnastics"],"c":0,"f":"Tennis uses a net."},
+  {"id":"q96","category":"pop","d":1,"q":"Which is a famous wizard?","a":["Harry Potter","Batman","Iron Man","Shrek"],"c":0,"f":"Harry Potter is a wizard."},
+  {"id":"q97","category":"science","d":1,"q":"What is steam?","a":["Frozen water","Gas form of water","Rock","Metal"],"c":1,"f":"Steam is water vapor."},
+  {"id":"q98","category":"arts","d":1,"q":"What do you call a drawing?","a":["Picture","Code","Car","Phone"],"c":0,"f":"A drawing is a picture."},
+  {"id":"q99","category":"geography","d":1,"q":"Which country is Canada in?","a":["Europe","North America","Asia","Africa"],"c":1,"f":"Canada is in North America."},
+
+
+
+
+
+
+
+
+{"id":"q101","category":"science","d":1,"q":"What do humans need to survive?","a":["Chocolate","Air","Plastic","Stone"],"c":1,"f":"Humans need air (oxygen)."},
+  {"id":"q102","category":"history","d":1,"q":"Which country built the pyramids?","a":["Greece","Egypt","Italy","India"],"c":1,"f":"Egypt built the pyramids."},
+  {"id":"q103","category":"geography","d":1,"q":"What is the capital of Germany?","a":["Berlin","Munich","Hamburg","Frankfurt"],"c":0,"f":"Berlin is the capital."},
+  {"id":"q104","category":"sports","d":1,"q":"Which sport uses a ball and hoop?","a":["Football","Basketball","Tennis","Golf"],"c":1,"f":"Basketball uses a hoop."},
+  {"id":"q105","category":"arts","d":1,"q":"What color do you get mixing red and blue?","a":["Green","Purple","Orange","Yellow"],"c":1,"f":"Red + blue = purple."},
+  {"id":"q106","category":"tech","d":1,"q":"What device do we use to talk on phone?","a":["Monitor","Keyboard","Smartphone","Printer"],"c":2,"f":"We use a smartphone."},
+  {"id":"q107","category":"science","d":1,"q":"What do bees produce?","a":["Milk","Honey","Water","Oil"],"c":1,"f":"Bees produce honey."},
+  {"id":"q108","category":"history","d":1,"q":"Which city has Big Ben?","a":["Paris","London","Rome","Berlin"],"c":1,"f":"Big Ben is in London."},
+  {"id":"q109","category":"geography","d":1,"q":"Which country has the Amazon rainforest?","a":["Brazil","USA","France","China"],"c":0,"f":"Mostly in Brazil."},
+  {"id":"q110","category":"pop","d":1,"q":"Who is Spider-Man?","a":["Doctor","Hero","Villain","Teacher"],"c":1,"f":"Spider-Man is a superhero."},
+
+  {"id":"q111","category":"science","d":1,"q":"What is the boiling point of water?","a":["50°C","100°C","150°C","200°C"],"c":1,"f":"Water boils at 100°C."},
+  {"id":"q112","category":"sports","d":1,"q":"How many legs does a human have?","a":["2","4","6","8"],"c":0,"f":"Humans have 2 legs."},
+  {"id":"q113","category":"arts","d":1,"q":"What do painters use?","a":["Brush","Hammer","Knife","Fork"],"c":0,"f":"Painters use brushes."},
+  {"id":"q114","category":"geography","d":1,"q":"Which continent is Egypt in?","a":["Asia","Africa","Europe","Australia"],"c":1,"f":"Egypt is in Africa."},
+  {"id":"q115","category":"history","d":1,"q":"Who was Julius Caesar?","a":["King","Roman leader","Scientist","Explorer"],"c":1,"f":"He was a Roman leader."},
+  {"id":"q116","category":"science","d":1,"q":"What is the main source of energy for Earth?","a":["Moon","Sun","Wind","Ocean"],"c":1,"f":"The Sun is main energy source."},
+  {"id":"q117","category":"tech","d":1,"q":"What do we use to click?","a":["Mouse","Keyboard","Cable","Screen"],"c":0,"f":"We use a mouse."},
+  {"id":"q118","category":"sports","d":1,"q":"Which sport uses a ball and net?","a":["Tennis","Running","Swimming","Boxing"],"c":0,"f":"Tennis uses a net."},
+  {"id":"q119","category":"pop","d":1,"q":"Which is a superhero movie?","a":["Frozen","Avengers","Titanic","Cars"],"c":1,"f":"Avengers is a superhero movie."},
+  {"id":"q120","category":"geography","d":1,"q":"Which ocean is between Africa and Australia?","a":["Pacific","Indian","Atlantic","Arctic"],"c":1,"f":"Indian Ocean is there."},
+
+  {"id":"q121","category":"science","d":1,"q":"What do trees give us?","a":["Plastic","Oxygen","Stone","Metal"],"c":1,"f":"Trees give oxygen."},
+  {"id":"q122","category":"history","d":1,"q":"Which war ended in 1918?","a":["WWI","WWII","Cold War","Vietnam War"],"c":0,"f":"World War I ended in 1918."},
+  {"id":"q123","category":"arts","d":1,"q":"How many strings does a guitar usually have?","a":["4","5","6","8"],"c":2,"f":"Guitar has 6 strings."},
+  {"id":"q124","category":"sports","d":1,"q":"Which sport uses a bat and ball?","a":["Cricket","Swimming","Running","Gymnastics"],"c":0,"f":"Cricket uses bat and ball."},
+  {"id":"q125","category":"geography","d":1,"q":"What is the capital of Spain?","a":["Madrid","Rome","Paris","Lisbon"],"c":0,"f":"Madrid is capital of Spain."},
+  {"id":"q126","category":"science","d":1,"q":"What do we call frozen rain?","a":["Snow","Ice","Hail","Steam"],"c":2,"f":"Frozen rain is hail."},
+  {"id":"q127","category":"tech","d":1,"q":"What stores pictures in a computer?","a":["Cloud","Keyboard","Mouse","Cable"],"c":0,"f":"Cloud stores files and pictures."},
+  {"id":"q128","category":"pop","d":1,"q":"Which is a famous cartoon dog?","a":["Mickey","Scooby-Doo","Elsa","Batman"],"c":1,"f":"Scooby-Doo is a cartoon dog."},
+  {"id":"q129","category":"history","d":1,"q":"Which ship sank in 1912?","a":["Titanic","Mayflower","Bismarck","Victoria"],"c":0,"f":"Titanic sank in 1912."},
+  {"id":"q130","category":"sports","d":1,"q":"Which sport uses gloves?","a":["Boxing","Football","Tennis","Golf"],"c":0,"f":"Boxing uses gloves."},
+
+  {"id":"q131","category":"science","d":1,"q":"What is the center of solar system?","a":["Earth","Sun","Moon","Mars"],"c":1,"f":"The Sun is center."},
+  {"id":"q132","category":"geography","d":1,"q":"Which country has maple leaf flag?","a":["USA","Canada","UK","France"],"c":1,"f":"Canada has maple leaf flag."},
+  {"id":"q133","category":"arts","d":1,"q":"What do you call a drawing book?","a":["Sketchbook","Notebook","Textbook","Guidebook"],"c":0,"f":"A sketchbook is for drawings."},
+  {"id":"q134","category":"tech","d":1,"q":"What powers a computer?","a":["Electricity","Water","Food","Fire"],"c":0,"f":"Computers run on electricity."},
+  {"id":"q135","category":"history","d":1,"q":"Who invented telephone?","a":["Edison","Bell","Tesla","Newton"],"c":1,"f":"Alexander Graham Bell."},
+  {"id":"q136","category":"sports","d":1,"q":"How many players in basketball team?","a":["4","5","6","7"],"c":1,"f":"5 players play."},
+  {"id":"q137","category":"science","d":1,"q":"What is gas we breathe out?","a":["Oxygen","Carbon dioxide","Helium","Nitrogen"],"c":1,"f":"We breathe out CO2."},
+  {"id":"q138","category":"geography","d":1,"q":"Which continent is Brazil in?","a":["Europe","Asia","South America","Africa"],"c":2,"f":"Brazil is in South America."},
+  {"id":"q139","category":"pop","d":1,"q":"Which game builds blocks?","a":["Minecraft","FIFA","Chess","Tetris"],"c":0,"f":"Minecraft is building game."},
+  {"id":"q140","category":"arts","d":1,"q":"What do singers do?","a":["Paint","Sing","Drive","Cook"],"c":1,"f":"Singers sing songs."},
+
+  {"id":"q141","category":"science","d":1,"q":"What is rain?","a":["Water from sky","Fire","Stone","Wind"],"c":0,"f":"Rain is water from clouds."},
+  {"id":"q142","category":"sports","d":1,"q":"Which sport is played on ice?","a":["Football","Ice hockey","Tennis","Cricket"],"c":1,"f":"Ice hockey is on ice."},
+  {"id":"q143","category":"geography","d":1,"q":"Which country is UK in?","a":["Europe","Asia","Africa","Australia"],"c":0,"f":"UK is in Europe."},
+  {"id":"q144","category":"history","d":1,"q":"Which empire was in Rome?","a":["Roman Empire","Greek Empire","British Empire","Ottoman Empire"],"c":0,"f":"Roman Empire was in Rome."},
+  {"id":"q145","category":"tech","d":1,"q":"What is used for internet connection?","a":["Router","Chair","Book","Pen"],"c":0,"f":"Router connects internet."},
+  {"id":"q146","category":"science","d":1,"q":"What is sound?","a":["Energy","Light","Stone","Gas"],"c":0,"f":"Sound is energy."},
+  {"id":"q147","category":"pop","d":1,"q":"Which is a famous wizard school?","a":["Hogwarts","MIT","Oxford","NASA"],"c":0,"f":"Hogwarts is from Harry Potter."},
+  {"id":"q148","category":"sports","d":1,"q":"Which sport uses a ball and stick?","a":["Cricket","Swimming","Running","Boxing"],"c":0,"f":"Cricket uses bat (stick) and ball."},
+  {"id":"q149","category":"arts","d":1,"q":"What do you use to write?","a":["Pen","Cup","Plate","Rock"],"c":0,"f":"Pen is used for writing."},
+
+
+
+
+
+
+
+ {"id":"q151","category":"science","d":1,"q":"What do humans use to see?","a":["Eyes","Ears","Nose","Hands"],"c":0,"f":"We use eyes to see."},
+  {"id":"q152","category":"history","d":1,"q":"Who was Napoleon?","a":["Scientist","Emperor","Pilot","Doctor"],"c":1,"f":"Napoleon was Emperor of France."},
+  {"id":"q153","category":"geography","d":1,"q":"Which continent is Egypt in?","a":["Asia","Africa","Europe","Australia"],"c":1,"f":"Egypt is in Africa."},
+  {"id":"q154","category":"sports","d":1,"q":"How many players in soccer team?","a":["9","10","11","12"],"c":2,"f":"There are 11 players."},
+  {"id":"q155","category":"tech","d":1,"q":"What does a computer mouse do?","a":["Prints","Clicks","Cooks","Drives"],"c":1,"f":"Mouse is used for clicking."},
+  {"id":"q156","category":"arts","d":1,"q":"What color is grass?","a":["Blue","Green","Red","Yellow"],"c":1,"f":"Grass is green."},
+  {"id":"q157","category":"science","d":1,"q":"What is the Sun?","a":["Planet","Star","Moon","Rock"],"c":1,"f":"The Sun is a star."},
+  {"id":"q158","category":"history","d":1,"q":"Which wall fell in 1989?","a":["Great Wall","Berlin Wall","Stone Wall","Iron Wall"],"c":1,"f":"The Berlin Wall fell in 1989."},
+  {"id":"q159","category":"geography","d":1,"q":"Which is the largest ocean?","a":["Atlantic","Pacific","Indian","Arctic"],"c":1,"f":"Pacific Ocean is largest."},
+  {"id":"q160","category":"pop","d":1,"q":"Who is Mickey Mouse?","a":["Dog","Cat","Mouse","Bird"],"c":2,"f":"Mickey is a mouse character."},
+
+  {"id":"q161","category":"science","d":1,"q":"How many legs does a cat have?","a":["2","4","6","8"],"c":1,"f":"Cats have 4 legs."},
+  {"id":"q162","category":"sports","d":1,"q":"Which sport uses a ball and hoop?","a":["Football","Basketball","Tennis","Golf"],"c":1,"f":"Basketball uses a hoop."},
+  {"id":"q163","category":"history","d":1,"q":"Who discovered America?","a":["Columbus","Newton","Edison","Tesla"],"c":0,"f":"Christopher Columbus."},
+  {"id":"q164","category":"geography","d":1,"q":"What is capital of Italy?","a":["Rome","Paris","Madrid","Berlin"],"c":0,"f":"Rome is capital of Italy."},
+  {"id":"q165","category":"tech","d":1,"q":"What does internet connect?","a":["Cars","People","Food","Animals"],"c":1,"f":"Internet connects people."},
+  {"id":"q166","category":"science","d":1,"q":"What is H2O?","a":["Salt","Water","Gas","Metal"],"c":1,"f":"H2O is water."},
+  {"id":"q167","category":"arts","d":1,"q":"What do you use to write?","a":["Pen","Cup","Plate","Rock"],"c":0,"f":"We use a pen."},
+  {"id":"q168","category":"geography","d":1,"q":"Which country has pyramids?","a":["Egypt","France","USA","China"],"c":0,"f":"Egypt has pyramids."},
+  {"id":"q169","category":"sports","d":1,"q":"Which sport uses gloves?","a":["Boxing","Tennis","Football","Golf"],"c":0,"f":"Boxing uses gloves."},
+  {"id":"q170","category":"pop","d":1,"q":"Which is a superhero?","a":["Spider-Man","Tom","Jerry","Elsa"],"c":0,"f":"Spider-Man is a superhero."},
+
+  {"id":"q171","category":"science","d":1,"q":"What do plants need?","a":["Sunlight","Candy","Metal","Plastic"],"c":0,"f":"Plants need sunlight."},
+  {"id":"q172","category":"history","d":1,"q":"Which empire built Rome?","a":["Roman","Greek","Egyptian","Persian"],"c":0,"f":"Romans built Rome."},
+  {"id":"q173","category":"geography","d":1,"q":"Which continent is USA in?","a":["Asia","Europe","North America","Africa"],"c":2,"f":"USA is in North America."},
+  {"id":"q174","category":"tech","d":1,"q":"What powers a phone?","a":["Electricity","Water","Fire","Stone"],"c":0,"f":"Phones use electricity."},
+  {"id":"q175","category":"sports","d":1,"q":"How many rings in Olympics?","a":["3","4","5","6"],"c":2,"f":"There are 5 rings."},
+  {"id":"q176","category":"arts","d":1,"q":"Which instrument has strings?","a":["Drum","Violin","Flute","Trumpet"],"c":1,"f":"Violin has strings."},
+  {"id":"q177","category":"science","d":1,"q":"What is steam?","a":["Water vapor","Stone","Metal","Fire"],"c":0,"f":"Steam is water vapor."},
+  {"id":"q178","category":"geography","d":1,"q":"Which country is Japan in?","a":["Europe","Asia","Africa","America"],"c":1,"f":"Japan is in Asia."},
+  {"id":"q179","category":"history","d":1,"q":"Who was Julius Caesar?","a":["Roman leader","Scientist","Pilot","Doctor"],"c":0,"f":"He was a Roman leader."},
+  {"id":"q180","category":"pop","d":1,"q":"Which movie has Elsa?","a":["Frozen","Shrek","Cars","Toy Story"],"c":0,"f":"Elsa is in Frozen."},
+
+  {"id":"q181","category":"science","d":1,"q":"What is the Moon?","a":["Planet","Star","Satellite","Comet"],"c":2,"f":"Moon is Earth's satellite."},
+  {"id":"q182","category":"sports","d":1,"q":"Which sport uses bat?","a":["Cricket","Swimming","Running","Gymnastics"],"c":0,"f":"Cricket uses bat."},
+  {"id":"q183","category":"geography","d":1,"q":"What is capital of France?","a":["Paris","Rome","Berlin","Madrid"],"c":0,"f":"Paris is capital."},
+  {"id":"q184","category":"tech","d":1,"q":"What is used to type?","a":["Keyboard","Mouse","Screen","Cable"],"c":0,"f":"Keyboard is used to type."},
+  {"id":"q185","category":"history","d":1,"q":"Which war ended in 1945?","a":["WWI","WWII","Cold War","Vietnam War"],"c":1,"f":"World War II ended in 1945."},
+  {"id":"q186","category":"science","d":1,"q":"What gas do we breathe in?","a":["Oxygen","Carbon Dioxide","Helium","Nitrogen"],"c":0,"f":"We breathe oxygen."},
+  {"id":"q187","category":"arts","d":1,"q":"What do musicians read?","a":["Notes","Books","Maps","Code"],"c":0,"f":"Musicians read notes."},
+  {"id":"q188","category":"sports","d":1,"q":"How many players in basketball?","a":["3","4","5","6"],"c":2,"f":"5 players per team."},
+  {"id":"q189","category":"geography","d":1,"q":"Which continent is Brazil in?","a":["Europe","Asia","South America","Africa"],"c":2,"f":"Brazil is in South America."},
+  {"id":"q190","category":"pop","d":1,"q":"Which is a cartoon mouse?","a":["Mickey Mouse","Batman","Shrek","Elsa"],"c":0,"f":"Mickey Mouse is a cartoon mouse."},
+
+  {"id":"q191","category":"science","d":1,"q":"What is lightning?","a":["Electricity","Water","Stone","Wind"],"c":0,"f":"Lightning is electricity."},
+  {"id":"q192","category":"history","d":1,"q":"Which ship sank in 1912?","a":["Titanic","Bismarck","Mayflower","Victoria"],"c":0,"f":"Titanic sank in 1912."},
+  {"id":"q193","category":"geography","d":1,"q":"Which desert is largest?","a":["Sahara","Gobi","Kalahari","Arctic"],"c":0,"f":"Sahara is largest hot desert."},
+  {"id":"q194","category":"tech","d":1,"q":"What is internet used for?","a":["Connecting people","Cooking","Sleeping","Running"],"c":0,"f":"Internet connects people."},
+  {"id":"q195","category":"sports","d":1,"q":"Which sport uses racket?","a":["Tennis","Boxing","Swimming","Running"],"c":0,"f":"Tennis uses racket."},
+  {"id":"q196","category":"arts","d":1,"q":"What do singers do?","a":["Sing","Paint","Drive","Cook"],"c":0,"f":"Singers sing."},
+  {"id":"q197","category":"science","d":1,"q":"What is rain?","a":["Water from sky","Fire","Stone","Metal"],"c":0,"f":"Rain is water from clouds."},
+  {"id":"q198","category":"history","d":1,"q":"Who was first US president?","a":["Washington","Lincoln","Jefferson","Adams"],"c":0,"f":"George Washington."},
+  {"id":"q199","category":"geography","d":1,"q":"Which country is Italy in?","a":["Europe","Asia","Africa","America"],"c":0,"f":"Italy is in Europe."},
+]  
+
+def normalize(q):
+    q = q.lower()
+
+    # מוחק סימני פיסוק
+    q = re.sub(r"[^\w\s]", "", q)
+
+    # מוריד מילות "רעש" נפוצות (אופציונלי אבל חזק)
+    noise_words = [
+        "what is", "who is", "which is", "how many",
+        "what does", "what do", "where is", "when did"
+    ]
+    for w in noise_words:
+        q = q.replace(w, "")
+
+    # מנקה רווחים
+    q = re.sub(r"\s+", " ", q)
+
+    return q.strip()
+
+seen = set()
+clean = []
+
+for item in data:
+    q_norm = normalize(item["q"])
+
+    if q_norm not in seen:
+        seen.add(q_norm)
+        clean.append(item)
+
+print("Original:", len(data))
+print("Clean:", len(clean))
+
+with open("clean_questions.json", "w", encoding="utf-8") as f:
+    json.dump(clean, f, indent=2, ensure_ascii=False)
+
+print("✔ Saved clean_questions.json")

@@ -1,0 +1,26 @@
+name: trivia_master_en
+description: "Trivia Master — English edition"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  purchases_flutter: ^8.0.0
+  shared_preferences: ^2.2.3
+  google_mobile_ads: ^5.1.0
+  audioplayers: ^6.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/sounds/
