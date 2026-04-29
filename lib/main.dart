@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
@@ -1710,7 +1710,7 @@ class _PS extends State<PaywallSheet>{
           const SizedBox(height:16),
           const Text('Yidaan Pro',style:TextStyle(color:Pal.tp,fontSize:28,fontWeight:FontWeight.w900)),
           const SizedBox(height:6),
-          const Text('$4.99/month',style:TextStyle(color:Pal.premium,fontSize:18,fontWeight:FontWeight.w700)),
+          const Text('\$4.99/month',style:TextStyle(color:Pal.premium,fontSize:18,fontWeight:FontWeight.w700)),
           const SizedBox(height:24),
           _bf('🔴','Hard levels unlocked'),
           _bf('⚡','50 energy — 3x more than normal'),
@@ -1761,7 +1761,7 @@ class _PS extends State<PaywallSheet>{
                   gradient:const LinearGradient(colors:[Color(0xFFFF9F0A),Color(0xFFFF6B00)]),
                   borderRadius:BorderRadius.circular(18),
                   boxShadow:[BoxShadow(color:Pal.premium.withOpacity(0.5),blurRadius:16,offset:const Offset(0,4))]),
-                child:const Text('Restart Now — $4.99/month',
+                child:const Text('Restart Now — \$4.99/month',
                   textAlign:TextAlign.center,
                   style:TextStyle(color:Colors.white,fontSize:16,fontWeight:FontWeight.w900)))),
             const SizedBox(height:10),
