@@ -20,7 +20,7 @@ class Cfg {
   static const rciOS                = 'appl_DSEyAVZKuOktZXgzNqiPKhjnOlO';
   static const entitlement          = 'premium';
   static const devCode              = 'shmuel1231';
-  static const mockPremium          = false;
+  static const mockPremium          = true;
   static const adMobEnabled         = true;
   static const adEnergyThreshold    = 3;
 
