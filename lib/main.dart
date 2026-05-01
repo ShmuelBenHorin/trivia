@@ -726,7 +726,7 @@ class _AdRewardDialogState extends State<_AdRewardDialog>
     const SizedBox(height: 14),
     FadeTransition(
       opacity: _anim,
-      child: Text('+$_earnedEnergy אנרגיה!',
+      child: Text('+$_earnedEnergy Energy!',
         style: const TextStyle(color: Pal.gold, fontSize: 24, fontWeight: FontWeight.w900))),
   ]);
 }
@@ -935,8 +935,6 @@ void _showCatDiffPicker(BuildContext ctx,String key,String name,String emoji,Col
 
 class _HomeCats {
   static const cats = [
-    ('israel','Israel','🇮🇱',Color(0xFF4D96FF)),
-    ('judaism','Judaism','✡️',Color(0xFF7C6FE0)),
     ('tv','TV','📺',Color(0xFF9B59B6)),
     ('music','Music','🎵',Color(0xFFE91E8C)),
     ('sports','Sports','⚽',Color(0xFFE74C3C)),
@@ -997,7 +995,7 @@ class _DiffCard extends StatelessWidget {
                   const SizedBox(height:12),
                   const Text('Still Locked',style:TextStyle(color:Pal.tp,fontSize:22,fontWeight:FontWeight.w900)),
                   const SizedBox(height:8),
-                  Text('Need $need ⭐ כדי לפתוח',textAlign:TextAlign.center,
+                  Text('Need $need ⭐ to unlock',textAlign:TextAlign.center,
                     style:const TextStyle(color:Pal.ts,fontSize:15,height:1.5)),
                   const SizedBox(height:20),
                   ClipRRect(borderRadius:BorderRadius.circular(8),
@@ -1759,7 +1757,7 @@ class _NES extends State<NoEnergyScreen> with SingleTickerProviderStateMixin {
             child:Column(children:[
               Row(mainAxisAlignment:MainAxisAlignment.center,children:[
                 const Text('\u26A1',style:TextStyle(fontSize:20)),const SizedBox(width:8),
-                Text('Energy: ${e.energy} מתוך ${e.maxE}',
+                Text('Energy: ${e.energy} / ${e.maxE}',
                   
                   style:const TextStyle(color:Pal.tp,fontSize:17,fontWeight:FontWeight.w700)),
               ]),
@@ -1794,7 +1792,8 @@ class _NES extends State<NoEnergyScreen> with SingleTickerProviderStateMixin {
                   style:TextStyle(color:Pal.premium,fontSize:18,fontWeight:FontWeight.w900)),
                 const SizedBox(height:10),
                 Text(
-                  'אנרגיה מקסימלית: 50 במקום 15\n3 energy refill every 15 min',
+                  'Max energy: 50 instead of 15
+3 energy refill every 15 min',
                   textAlign:TextAlign.center,
                   style:const TextStyle(color:Pal.ts,fontSize:13,height:1.6)),
                 const SizedBox(height:16),
@@ -1916,7 +1915,7 @@ class _PS extends State<PaywallSheet>{
                 if(mounted){
                   Navigator.pop(context);
                   if(ok)ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content:Text('✅ הרכישה שוBack!'),backgroundColor:Pal.green));
+                    const SnackBar(content:Text('✅ Purchase restored!'),backgroundColor:Pal.green));
                 }
               },
               child:const Text('Restore Purchases',style:TextStyle(color:Pal.ts,fontSize:13,decoration:TextDecoration.underline))),
@@ -1941,8 +1940,6 @@ class CategorySelectScreen extends StatelessWidget {
   const CategorySelectScreen({super.key});
 
   static const _cats = [
-    ('israel',    'Israel',         '🇮🇱', Color(0xFF4D96FF)),
-    ('judaism',   'Judaism',         '✡️',  Color(0xFF7C6FE0)),
     ('tv',        'TV',      '📺',  Color(0xFF9B59B6)),
     ('music',     'Music',        '🎵',  Color(0xFFE91E8C)),
     ('sports',    'Sports',         '⚽',  Color(0xFFE74C3C)),
