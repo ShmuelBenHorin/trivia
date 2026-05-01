@@ -103,18 +103,35 @@ class QRepo {
   static List<Question> _p(String j, Diff d) =>
       (jsonDecode(j) as List).map((e)=>Question.fromMap(e)).toList();
   static List<Question> forDiff(Diff d) => [easy,medium,hard][d.index];
+
+  // ─── Seen questions tracking ─────────────────────────────────────────────
+  static final Map<Diff,Set<String>> _seen = {Diff.easy:{},Diff.medium:{},Diff.hard:{}};
+  static Future<void> loadSeen() async {
+    final p = await SharedPreferences.getInstance();
+    for (final d in Diff.values) {
+      _seen[d] = Set<String>.from(p.getStringList('seen_${d.name}') ?? []);
+    }
+  }
+  static Future<void> markSeen(String id, Diff d) async {
+    _seen[d]!.add(id);
+    final p = await SharedPreferences.getInstance();
+    await p.setStringList('seen_${d.name}', _seen[d]!.toList());
+  }
+
   static List<Question> forLevel(int idx, Diff d) {
     final all = forDiff(d);
-    final perLevel = Cfg.questionsPerLevel;
-    // Each level owns a fixed block of questions, but they're shuffled randomly each play
-    final start = (idx * perLevel) % all.length;
-    final pool = <Question>[];
-    for (int i = 0; i < perLevel; i++) {
-      pool.add(all[(start + i) % all.length]);
+    // Filter out already-correctly-answered questions
+    var pool = all.where((q) => !(_seen[d]?.contains(q.id) ?? false)).toList();
+    // If not enough unseen questions, reset the seen list
+    if (pool.length < Cfg.questionsPerLevel) {
+      _seen[d] = {};
+      SharedPreferences.getInstance().then((p) => p.remove('seen_${d.name}'));
+      pool = List<Question>.from(all);
     }
     pool.shuffle();
-    return pool;
+    return pool.take(Cfg.questionsPerLevel).toList();
   }
+
   static int levelCount(Diff d) => max(1,(forDiff(d).length/Cfg.questionsPerLevel).floor());
   static List<Question> all(bool prem) =>
       prem ? [...easy, ...medium, ...hard] : [...easy, ...medium];
@@ -350,7 +367,7 @@ class GameState extends ChangeNotifier {
   void answer(int idx) async {
     if(_fb)return; _t?.cancel(); _sel=idx; _fb=true; notifyListeners();
     final ok=idx==cur.c;
-    if(ok){await Sfx.correct();await Future.delayed(const Duration(milliseconds:1600));}
+    if(ok){await Sfx.correct();QRepo.markSeen(cur.id,diff);await Future.delayed(const Duration(milliseconds:1600));}
     else{
       await Sfx.wrong(); _wrong++; _stars=(Cfg.starsPerLevel-_wrong).clamp(0,3);
       await EnergyService.instance.spend(Cfg.energyCostWrong);
@@ -389,7 +406,7 @@ class Pal {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp,DeviceOrientation.portraitDown]);
-  await PurchaseService.init(); await LevelService.init(); await EnergyService.init();
+  await PurchaseService.init(); await LevelService.init(); await EnergyService.init(); await QRepo.loadSeen();
   // ─── AdMob אתחול ──────────────────────────────────────────────────────────
   if (Cfg.adMobEnabled && !kIsWeb) {
     await MobileAds.instance.initialize();
