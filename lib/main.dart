@@ -28,20 +28,20 @@ class Cfg {
   // כרגע: Test IDs של גוגל — לאחר פתיחת חשבון AdMob החלף ב-IDs האמיתיים שלך
   // Android test rewarded: ca-app-pub-3940256099942544/5224354917
   // iOS     test rewarded: ca-app-pub-3940256099942544/1712485313
-  // פרסומת מלאה 30 שניות → +5 אנרגיה
+  // פרסומת מלאה 30 שניות → +5 Energy
   static String get adRewardedUnitId =>
       defaultTargetPlatform == TargetPlatform.iOS
           ? 'ca-app-pub-3940256099942544/1712485313'  // ← החלף ב-iOS Rewarded Ad Unit ID שלך
           : 'ca-app-pub-3940256099942544/5224354917'; // ← החלף ב-Android Rewarded Ad Unit ID שלך
 
-  // פרסומת עם דילוג אחרי 5 שניות → +1 אנרגיה
+  // פרסומת עם דילוג אחרי 5 שניות → +1 Energy
   static String get adInterstitialUnitId =>
       defaultTargetPlatform == TargetPlatform.iOS
           ? 'ca-app-pub-3940256099942544/4411468910'  // ← החלף ב-iOS Interstitial Ad Unit ID שלך
           : 'ca-app-pub-3940256099942544/1033173712'; // ← החלף ב-Android Interstitial Ad Unit ID שלך
 
-  static const adRewardedEnergy     = 5;  // אנרגיה מפרסומת מלאה
-  static const adInterstitialEnergy = 1;  // אנרגיה מפרסומת עם דילוג
+  static const adRewardedEnergy     = 5;  // Energy מפרסומת מלאה
+  static const adInterstitialEnergy = 1;  // Energy מפרסומת עם דילוג
 
   static const questionsPerLevel    = 10;
   static const starsPerLevel        = 3;
@@ -257,7 +257,7 @@ class EnergyService extends ChangeNotifier {
     return mins.toString() + ' min';
   }
   bool get canWatchAd => _e < maxE && !PurchaseService.instance.isPremium;
-  // אנרגיה מפרסומת — amount לפי סוג הפרסומת
+  // Energy מפרסומת — amount לפי סוג הפרסומת
   Future<void> rewardFromAd({int amount = Cfg.adRewardedEnergy}) async {
     _e = (_e + amount).clamp(0, maxE);
     await _save(); notifyListeners();
@@ -456,7 +456,7 @@ class App extends StatelessWidget {
   const App({super.key});
   @override Widget build(BuildContext context) {
     return ListenableBuilder(listenable:PurchaseService.instance,
-      builder:(_,__)=>MaterialApp(title:'Yidaan',debugShowCheckedModeBanner:false,
+      builder:(_,__)=>MaterialApp(title:'Trivia Master',debugShowCheckedModeBanner:false,
         theme:ThemeData.dark().copyWith(scaffoldBackgroundColor:Pal.bg,useMaterial3:true),
         home:const HomeScreen()));
   }
@@ -568,8 +568,8 @@ class _EnergyChipState extends State<EnergyChip> with SingleTickerProviderStateM
 
 // ═══════════════════════════════════════════════
 //  AD REWARD DIALOG — שני סוגי פרסומות AdMob
-//  • Rewarded (30 שניות) → +5 אנרגיה
-//  • Interstitial (דילוג אחרי 5 שניות) → +1 אנרגיה
+//  • Rewarded (30 שניות) → +5 Energy
+//  • Interstitial (דילוג אחרי 5 שניות) → +1 Energy
 // ═══════════════════════════════════════════════
 class _AdRewardDialog extends StatefulWidget {
   @override State<_AdRewardDialog> createState() => _AdRewardDialogState();
@@ -595,7 +595,7 @@ class _AdRewardDialogState extends State<_AdRewardDialog>
     _loadInterstitialAd();
   }
 
-  // ── טעינת פרסומת Rewarded (30 שניות, +5 אנרגיה) ──────────────────────────
+  // ── טעינת פרסומת Rewarded (30 שניות, +5 Energy) ──────────────────────────
   void _loadRewardedAd() {
     RewardedAd.load(
       adUnitId: Cfg.adRewardedUnitId,
@@ -607,7 +607,7 @@ class _AdRewardDialogState extends State<_AdRewardDialog>
     );
   }
 
-  // ── טעינת פרסומת Interstitial (דילוג אחרי 5 שניות, +1 אנרגיה) ────────────
+  // ── טעינת פרסומת Interstitial (דילוג אחרי 5 שניות, +1 Energy) ────────────
   void _loadInterstitialAd() {
     InterstitialAd.load(
       adUnitId: Cfg.adInterstitialUnitId,
@@ -807,7 +807,7 @@ class _HS extends State<HomeScreen> with TickerProviderStateMixin {
         Padding(padding:const EdgeInsets.fromLTRB(20,16,20,0),
           child:Row(children:[
             ShaderMask(shaderCallback:(b)=>const LinearGradient(colors:[Pal.gold,Color(0xFFFF9F0A)]).createShader(b),
-              child:const Text('Yidaan',style:TextStyle(fontSize:36,fontWeight:FontWeight.w900,color:Colors.white,letterSpacing:3))),
+              child:const Text('Trivia Master',style:TextStyle(fontSize:36,fontWeight:FontWeight.w900,color:Colors.white,letterSpacing:3))),
             const Spacer(),
             GestureDetector(
               onTap: () => Navigator.push(context, _slide(const MistakesScreen())),
@@ -901,7 +901,7 @@ void _showCatDiffPicker(BuildContext ctx,String key,String name,String emoji,Col
                       final ok=PurchaseService.instance.tryDev(c);
                       Navigator.pop(ctx);
                       ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                        content:Text(ok?'\u05E7\u05D5\u05D3 \u05D0\u05D5\u05E9\u05E8! \u05DB\u05DC \u05D4\u05EA\u05DB\u05E0\u05D9\u05DD \u05E4\u05EA\u05D5\u05D7\u05D9\u05DD \u{1F389}':'\u05E7\u05D5\u05D3 \u05E9\u05D2\u05D5\u05D9'),
+                        content:Text(ok?'Code confirmed! All unlocked 🎉':'Invalid code'),
                         backgroundColor:ok?Pal.green:Pal.red));
                     }));
                   return;
@@ -922,7 +922,7 @@ void _showCatDiffPicker(BuildContext ctx,String key,String name,String emoji,Col
                   Text(d.label,style:TextStyle(color:d.color,fontSize:15,fontWeight:FontWeight.w700)),
                   if(locked)...[const SizedBox(width:8),Container(padding:const EdgeInsets.symmetric(horizontal:8,vertical:2),
                     decoration:BoxDecoration(color:Pal.premium.withOpacity(0.2),borderRadius:BorderRadius.circular(8)),
-                    child:const Text('\u05E4\u05E8\u05D5',style:TextStyle(color:Pal.premium,fontSize:10,fontWeight:FontWeight.w800)))],
+                    child:const Text('PRO',style:TextStyle(color:Pal.premium,fontSize:10,fontWeight:FontWeight.w800)))],
                   const Spacer(),
                   Text('$count questions',style:TextStyle(color:d.color.withOpacity(0.8),fontSize:12)),
                   const SizedBox(width:8),
@@ -955,7 +955,7 @@ class _StarsBar extends StatelessWidget {
         border:Border.all(color:Pal.gold.withOpacity(0.2))),
       child:Row(children:[
         const Text('\u2B50',style:TextStyle(fontSize:15)),const SizedBox(width:8),
-        Text('$all \u05DB\u05D5\u05DB\u05D1\u05D9\u05DD',style:const TextStyle(color:Pal.gold,fontWeight:FontWeight.w700,fontSize:13)),
+        Text('$all stars',style:const TextStyle(color:Pal.gold,fontWeight:FontWeight.w700,fontSize:13)),
         if(next!=null)...[
           const SizedBox(width:10),
           Expanded(child:ClipRRect(borderRadius:BorderRadius.circular(4),
@@ -1035,12 +1035,12 @@ class _DiffCard extends StatelessWidget {
                 Text(diff.label,style:TextStyle(color:unlocked?Pal.tp:Pal.ts,fontSize:20,fontWeight:FontWeight.w800)),
                 if(isPrem)...[const SizedBox(width:8),Container(padding:const EdgeInsets.symmetric(horizontal:8,vertical:2),
                   decoration:BoxDecoration(color:Pal.premium.withOpacity(0.2),borderRadius:BorderRadius.circular(8)),
-                  child:const Text('\u05E4\u05E8\u05D5',style:TextStyle(color:Pal.premium,fontSize:10,fontWeight:FontWeight.w800)))],
+                  child:const Text('PRO',style:TextStyle(color:Pal.premium,fontSize:10,fontWeight:FontWeight.w800)))],
               ]),
               const SizedBox(height:4),
-              Text(unlocked?'${QRepo.levelCount(diff)} \u05E9\u05DC\u05D1\u05D9\u05DD \u00B7 $earned/$maxS \u2B50'
-                :(isPrem?'\u05E6\u05E8\u05D9\u05DA \u05E4\u05E8\u05D5 + $need \u05DB\u05D5\u05DB\u05D1\u05D9\u05DD':'\u05E6\u05E8\u05D9\u05DA $need \u2B50 \u05DC\u05E4\u05EA\u05D9\u05D7\u05D4'),
-                style:const TextStyle(color:Pal.ts,fontSize:12)),
+              Text(unlocked?'${QRepo.levelCount(diff)} levels \u00B7 $earned/$maxS \u2B50'
+              Text(unlocked?'${QRepo.levelCount(diff)} levels · $earned/$maxS ⭐'
+                :(isPrem?'Needs PRO + $need stars':'Need $need ⭐ to unlock'),
               if(unlocked&&earned>0)...[const SizedBox(height:8),ClipRRect(borderRadius:BorderRadius.circular(4),
                 child:LinearProgressIndicator(value:earned/maxS,minHeight:4,backgroundColor:Pal.starOff,valueColor:AlwaysStoppedAnimation(diff.color)))],
             ])),
@@ -1048,7 +1048,7 @@ class _DiffCard extends StatelessWidget {
           ])));
     });
   }
-  void _paywall(BuildContext ctx){showModalBottomSheet(context:ctx,isScrollControlled:true,backgroundColor:Colors.transparent,builder:(_)=>PaywallSheet(onCode:(c){final ok=PurchaseService.instance.tryDev(c);Navigator.pop(ctx);ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content:Text(ok?'\u05E7\u05D5\u05D3 \u05D0\u05D5\u05E9\u05E8! \u05DB\u05DC \u05D4\u05EA\u05DB\u05E0\u05D9\u05DD \u05E4\u05EA\u05D5\u05D7\u05D9\u05DD \u{1F389}':'\u05E7\u05D5\u05D3 \u05E9\u05D2\u05D5\u05D9'),backgroundColor:ok?Pal.green:Pal.red));}));}
+  void _paywall(BuildContext ctx){showModalBottomSheet(context:ctx,isScrollControlled:true,backgroundColor:Colors.transparent,builder:(_)=>PaywallSheet(onCode:(c){final ok=PurchaseService.instance.tryDev(c);Navigator.pop(ctx);ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content:Text(ok?'Code confirmed! All unlocked \u{1F389}':'Invalid code'),backgroundColor:ok?Pal.green:Pal.red));}));}
 }
 
 // ═══════════════════════════════════════════════
@@ -1070,7 +1070,7 @@ class LevelMapScreen extends StatelessWidget {
             child:Row(children:[
               _iconBtn(Icons.arrow_back,()=>Navigator.pop(context)),
               const SizedBox(width:12),
-              Text('\u05E8\u05DE\u05D4 ${diff.label}',style:TextStyle(color:diff.color,fontSize:22,fontWeight:FontWeight.w800)),
+              Text(diff.label,style:TextStyle(color:diff.color,fontSize:22,fontWeight:FontWeight.w800)),
               const Spacer(),
               const EnergyChip(),
             ])),
@@ -1116,8 +1116,8 @@ class _DiffTransitionNode extends StatelessWidget {
               Text(unlocked?nextDiff.emoji:'\u{1F512}',style:const TextStyle(fontSize:20)),
               const SizedBox(width:10),
               Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-                Text('\u05E8\u05DE\u05D4 ${nextDiff.label}',style:TextStyle(color:unlocked?Pal.tp:Pal.ts,fontSize:15,fontWeight:FontWeight.w800)),
-                Text(unlocked?'\u05DC\u05D7\u05E5 \u05DC\u05E4\u05EA\u05D9\u05D7\u05D4 \u25B6':'\u05E6\u05E8\u05D9\u05DA ${nextDiff==Diff.medium?Cfg.starsToUnlockMedium:Cfg.starsToUnlockHard} \u2B50 \u05DC\u05E4\u05EA\u05D9\u05D7\u05D4',
+                Text(nextDiff.label,style:TextStyle(color:unlocked?Pal.tp:Pal.ts,fontSize:15,fontWeight:FontWeight.w800)),
+                Text(unlocked?'Tap to unlock ▶':'Need ${nextDiff==Diff.medium?Cfg.starsToUnlockMedium:Cfg.starsToUnlockHard} ⭐ to unlock',
                   style:const TextStyle(color:Pal.ts,fontSize:11)),
               ]),
             ]))),
@@ -1148,7 +1148,7 @@ class _LevelNode extends StatelessWidget {
         onTap:(){
           if(!unlocked)return;
           if(!EnergyService.instance.has){Navigator.push(context,_slide(const NoEnergyScreen()));return;}
-          EnergyService.instance.spend(Cfg.energyCostWrong); // כניסה לLevel עולה 1 אנרגיה
+          EnergyService.instance.spend(Cfg.energyCostWrong); // כניסה לLevel עולה 1 Energy
           Navigator.push(context,_slide(GameScreen(diff:diff,levelIndex:index)));
         },
         child:Column(mainAxisSize:MainAxisSize.min,children:[
@@ -1254,7 +1254,7 @@ class _GS extends State<GameScreen> with TickerProviderStateMixin {
             _iconBtn(Icons.close,()async{final l=await _quit();if(l&&mounted)Navigator.pop(context);}),const SizedBox(width:8),_iconBtn(Icons.refresh_rounded,()async{final l=await showDialog<bool>(context:context,barrierDismissible:false,builder:(_)=>_RestartDlg());if((l??false)&&mounted){setState((){});_gs.removeListener(_onChange);_gs.dispose();setState((){_gs=GameState(diff:widget.diff,levelIdx:widget.levelIndex);_gs.addListener(_onChange);_exiting=false;_cardCtrl.forward(from:0);});}}),
             const SizedBox(width:12),
             Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-              Text('\u05E9\u05DC\u05D1 ${_gs.levelIdx+1} \u00B7 ${widget.diff.label}',style:const TextStyle(color:Pal.ts,fontSize:11,fontWeight:FontWeight.w600)),
+          Text('Level ${_gs.levelIdx+1} · ${widget.diff.label}',style:const TextStyle(color:Pal.ts,fontSize:11,fontWeight:FontWeight.w500)),
               const SizedBox(height:4),
               ClipRRect(borderRadius:BorderRadius.circular(6),
                 child:LinearProgressIndicator(value:_gs.prog,minHeight:8,backgroundColor:Pal.card,valueColor:AlwaysStoppedAnimation(widget.diff.color))),
@@ -1359,7 +1359,7 @@ class _FactBanner extends StatelessWidget {
         child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
           Text(ok?'\u2705':'\u274C',style:const TextStyle(fontSize:16)),const SizedBox(width:10),
           Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-            Text(ok?'\u05E0\u05DB\u05D5\u05DF!':'\u05EA\u05E9\u05D5\u05D1\u05D4: ${q.a[q.c]}',style:TextStyle(color:c,fontWeight:FontWeight.w800,fontSize:13)),
+          Text(ok?'Correct!':'Answer: ${q.a[q.c]}',style:TextStyle(color:c,fontWeight:FontWeight.w800,fontSize:13)),
             if(q.f!=null)...[const SizedBox(height:4),Text(q.f!,style:const TextStyle(color:Pal.ts,fontSize:12,height:1.4))],
           ])),
         ])));
@@ -1407,18 +1407,18 @@ class _QuitDlg extends StatelessWidget {
     return Dialog(backgroundColor:Pal.card,shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(24)),
       child:Padding(padding:const EdgeInsets.all(24),child:Column(mainAxisSize:MainAxisSize.min,children:[
         const Text('\u{1F6AA}',style:TextStyle(fontSize:48)),const SizedBox(height:12),
-        const Text('\u05DC\u05E6\u05D0\u05EA \u05DE\u05D4\u05E9\u05DC\u05D1?',style:TextStyle(color:Pal.tp,fontSize:20,fontWeight:FontWeight.w800)),
+        const Text('Quit Level?',style:TextStyle(color:Pal.tp,fontSize:20,fontWeight:FontWeight.w800)),
         const SizedBox(height:8),
-        const Text('\u05D4\u05D4\u05EA\u05E7\u05D3\u05DE\u05D5\u05EA \u05D1\u05E9\u05DC\u05D1 \u05D6\u05D4 \u05DC\u05D0 \u05EA\u05D9\u05E9\u05DE\u05E8',textAlign:TextAlign.center,style:TextStyle(color:Pal.ts,fontSize:14)),
+        const Text('Progress will not be saved',style:const TextStyle(color:Pal.ts,fontSize:14,height:1.5)),
         const SizedBox(height:24),
         Row(children:[
           Expanded(child:OutlinedButton(onPressed:()=>Navigator.pop(context,false),
             style:OutlinedButton.styleFrom(side:const BorderSide(color:Pal.accent),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(14))),
-            child:const Padding(padding:EdgeInsets.symmetric(vertical:12),child:Text('\u05D4\u05DE\u05E9\u05DA \u05DC\u05E9\u05D7\u05E7',style:TextStyle(color:Pal.accent,fontWeight:FontWeight.w700))))),
+                child:const Padding(padding:EdgeInsets.symmetric(vertical:12),child:Text('Keep Playing',style:TextStyle(color:Colors.white,fontSize:16,fontWeight:FontWeight.w700)))),
           const SizedBox(width:12),
           Expanded(child:ElevatedButton(onPressed:()=>Navigator.pop(context,true),
             style:ElevatedButton.styleFrom(backgroundColor:Pal.red.withOpacity(0.2),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(14))),
-            child:const Padding(padding:EdgeInsets.symmetric(vertical:12),child:Text('\u05D9\u05E6\u05D9\u05D0\u05D4',style:TextStyle(color:Pal.red,fontWeight:FontWeight.w700))))),
+            child:const Padding(padding:EdgeInsets.symmetric(vertical:12),child:Text('Exit',style:TextStyle(color:Pal.red,fontWeight:FontWeight.w700))))),
         ]),
       ])));
   }
@@ -1602,24 +1602,24 @@ class _FS extends State<FailedScreen> with SingleTickerProviderStateMixin {
       SafeArea(child:Center(child:SingleChildScrollView(padding:const EdgeInsets.all(32),child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[
         ScaleTransition(scale:CurvedAnimation(parent:_c,curve:Curves.easeOutBack),child:const Text('\u{1F494}',style:TextStyle(fontSize:90))),
         const SizedBox(height:16),
-        FadeTransition(opacity:_c,child:const Text('\u05E0\u05E4\u05E1\u05DC\u05EA!',style:TextStyle(color:Pal.red,fontSize:36,fontWeight:FontWeight.w900))),
+      FadeTransition(opacity:_c,child:const Text('Failed!',style:TextStyle(color:Pal.red,fontSize:36,fontWeight:FontWeight.w900))),
         const SizedBox(height:8),
-        Text('\u05E9\u05DC\u05D1 ${widget.levelIndex+1} \u00B7 ${widget.diff.label}',style:const TextStyle(color:Pal.ts,fontSize:16)),
+          Text('Level ${widget.levelIndex+1} · ${widget.diff.label}',style:const TextStyle(color:Pal.ts,fontSize:13)),
         const SizedBox(height:20),
         ListenableBuilder(listenable:EnergyService.instance,builder:(_,__)=>Container(
           padding:const EdgeInsets.symmetric(horizontal:24,vertical:12),
           decoration:BoxDecoration(color:Pal.card,borderRadius:BorderRadius.circular(16),border:Border.all(color:Pal.red.withOpacity(0.3))),
           child:Row(mainAxisSize:MainAxisSize.min,children:[
             const Text('\u26A1',style:TextStyle(fontSize:18)),const SizedBox(width:8),
-            Text('\u05D0\u05E0\u05E8\u05D2\u05D9\u05D4: ${EnergyService.instance.energy}/${EnergyService.instance.maxE}',style:const TextStyle(color:Pal.tp,fontSize:14)),
+            Text('Energy: ${EnergyService.instance.energy}/${EnergyService.instance.maxE}',style:const TextStyle(color:Pal.tp,fontSize:14)),
           ]))),
         const SizedBox(height:48),
-        _bigBtn('\u{1F504}  \u05E0\u05E1\u05D4 \u05E9\u05D5\u05D1',widget.diff.color,(){
+          _bigBtn('🔄  Try Again',widget.diff.color,(){
           if(!EnergyService.instance.has){Navigator.push(context,_slide(const NoEnergyScreen()));return;}
           Navigator.pushReplacement(context,_slide(GameScreen(diff:widget.diff,levelIndex:widget.levelIndex)));
         }),
         const SizedBox(height:14),
-        _outBtn('\u{1F5FA}\uFE0F  \u05DE\u05E4\u05EA \u05E9\u05DC\u05D1\u05D9\u05DD',()=>Navigator.popUntil(context,(r)=>r.isFirst)),
+          _outBtn('🗺️  Level Map',()=>Navigator.popUntil(context,(r)=>r.isFirst)),
       ])))),
     ]));
   }
@@ -1634,18 +1634,18 @@ class _RestartDlg extends StatelessWidget {
     return Dialog(backgroundColor:Pal.card,shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(24)),
       child:Padding(padding:const EdgeInsets.all(24),child:Column(mainAxisSize:MainAxisSize.min,children:[
         const Text('\u{1F504}',style:TextStyle(fontSize:48)),const SizedBox(height:12),
-        const Text('\u05D4\u05EA\u05D7\u05DC \u05DE\u05D4\u05EA\u05D7\u05DC\u05D4?',style:TextStyle(color:Pal.tp,fontSize:20,fontWeight:FontWeight.w800)),
+        const Text('Start Over?',style:TextStyle(color:Pal.tp,fontSize:20,fontWeight:FontWeight.w800)),
         const SizedBox(height:8),
-        const Text('\u05D4\u05E9\u05DC\u05D1 \u05D9\u05EA\u05D7\u05D9\u05DC \u05DE\u05D7\u05D3\u05E9. \u05D4\u05DB\u05D5\u05DB\u05D1\u05D9\u05DD \u05E9\u05E0\u05E6\u05D1\u05E8\u05D5 \u05D9\u05E9\u05DE\u05E8\u05D5.',textAlign:TextAlign.center,style:TextStyle(color:Pal.ts,fontSize:14)),
+        const Text('Level restarts. Earned stars are saved.',style:const TextStyle(color:Pal.ts,fontSize:14,height:1.5)),
         const SizedBox(height:24),
         Row(children:[
           Expanded(child:OutlinedButton(onPressed:()=>Navigator.pop(context,false),
             style:OutlinedButton.styleFrom(side:const BorderSide(color:Pal.accent),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(14))),
-            child:const Padding(padding:EdgeInsets.symmetric(vertical:12),child:Text('\u05D1\u05D8\u05DC',style:TextStyle(color:Pal.accent,fontWeight:FontWeight.w700))))),
+            child:const Padding(padding:EdgeInsets.symmetric(vertical:12),child:Text('Cancel',style:TextStyle(color:Pal.accent,fontWeight:FontWeight.w700))))),
           const SizedBox(width:12),
           Expanded(child:ElevatedButton(onPressed:()=>Navigator.pop(context,true),
             style:ElevatedButton.styleFrom(backgroundColor:Pal.green.withOpacity(0.2),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(14))),
-            child:const Padding(padding:EdgeInsets.symmetric(vertical:12),child:Text('\u05D4\u05EA\u05D7\u05DC',style:TextStyle(color:Pal.green,fontWeight:FontWeight.w700))))),
+            child:const Padding(padding:EdgeInsets.symmetric(vertical:12),child:Text('Restart',style:TextStyle(color:Pal.green,fontWeight:FontWeight.w700))))),
         ]),
       ])));
   }
@@ -1746,7 +1746,7 @@ class _NES extends State<NoEnergyScreen> with SingleTickerProviderStateMixin {
           ScaleTransition(scale:CurvedAnimation(parent:_c,curve:Curves.easeOutBack),
             child:const Text('\u26A1',style:TextStyle(fontSize:80))),
           const SizedBox(height:16),
-          FadeTransition(opacity:_c,child:const Text('\u05E0\u05D2\u05DE\u05E8\u05D4 \u05D4\u05D0\u05E0\u05E8\u05D2\u05D9\u05D4!',
+      FadeTransition(opacity:_c,child:const Text('Out of Energy!',style:TextStyle(color:Pal.red,fontSize:30,fontWeight:FontWeight.w900))),
             style:TextStyle(color:Pal.tp,fontSize:26,fontWeight:FontWeight.w900))),
           const SizedBox(height:20),
           Container(
@@ -1788,7 +1788,7 @@ class _NES extends State<NoEnergyScreen> with SingleTickerProviderStateMixin {
                 borderRadius:BorderRadius.circular(20),
                 border:Border.all(color:Pal.premium.withOpacity(0.5))),
               child:Column(children:[
-                const Text('\u{1F451}  \u05E8\u05DB\u05D5\u05E9 \u05E4\u05E8\u05D5',
+                const Text('👑  Get Pro',
                   style:TextStyle(color:Pal.premium,fontSize:18,fontWeight:FontWeight.w900)),
                 const SizedBox(height:10),
                 Text(
@@ -1805,7 +1805,7 @@ class _NES extends State<NoEnergyScreen> with SingleTickerProviderStateMixin {
                         final ok=PurchaseService.instance.tryDev(c);
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content:Text(ok?'\u05E7\u05D5\u05D3 \u05D0\u05D5\u05E9\u05E8! \u{1F389}':'\u05E7\u05D5\u05D3 \u05E9\u05D2\u05D5\u05D9'),
+                content:Text(ok?'Code confirmed! 🎉':'Invalid code'),
                           backgroundColor:ok?Pal.green:Pal.red));
                       }));
                   },
@@ -1820,7 +1820,7 @@ class _NES extends State<NoEnergyScreen> with SingleTickerProviderStateMixin {
               ])),
             const SizedBox(height:16),
           ],
-          _outBtn('\u05D7\u05D6\u05E8\u05D4',()=>Navigator.pop(context)),
+          _outBtn('Back',()=>Navigator.pop(context)),
         ])))),
       ])),
     ]));
@@ -2064,7 +2064,7 @@ class _CQState extends State<CategoryQuizScreen> with TickerProviderStateMixin {
       pool.addAll(extra.where((q) => q.category != widget.category));
     }
     _questions = pool.take(_maxQ).toList();
-    // כניסה לחידון עולה 1 אנרגיה
+    // כניסה לחידון עולה 1 Energy
     EnergyService.instance.spend(Cfg.energyCostWrong);
     _startTimer();
   }
@@ -2093,7 +2093,7 @@ class _CQState extends State<CategoryQuizScreen> with TickerProviderStateMixin {
       });
     } else {
       await Sfx.wrong();
-      // אנרגיה יורדת בשקט — ללא פופאפ, ללא אישור
+      // Energy יורדת בשקט — ללא פופאפ, ללא אישור
       await EnergyService.instance.spend(Cfg.energyCostWrong);
       _shakeCtrl.forward(from:0);
       _energyLossCtrl.forward(from:0);
@@ -2154,7 +2154,7 @@ class _CQState extends State<CategoryQuizScreen> with TickerProviderStateMixin {
                       style:const TextStyle(color:Pal.gold,fontWeight:FontWeight.w900,fontSize:13))),
                 ])),
               const SizedBox(width:8),
-              // ⚡ אנרגיה — יורדת בשקט
+              // ⚡ Energy — יורדת בשקט
               const EnergyChip(),
               const SizedBox(width:8),
               // ⏱ טיימר
