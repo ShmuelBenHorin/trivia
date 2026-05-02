@@ -69,7 +69,7 @@ extension DiffX on Diff {
   String get label   => ['Easy', 'Medium', 'Hard'][index];
   Color  get color   => [const Color(0xFF2ECC71), const Color(0xFF4D96FF), const Color(0xFFE74C3C)][index];
   bool   get isPrem  => this == Diff.hard;
-  String get emoji   => ['\u{1F7E2}', '\u{1F535}', '\u{1F534}'][index];
+  String get emoji   => ['🟢', '🔵', '🔴'][index];
 }
 
 // ═══════════════════════════════════════════════
@@ -917,7 +917,7 @@ void _showCatDiffPicker(BuildContext ctx,String key,String name,String emoji,Col
                   borderRadius:BorderRadius.circular(14),
                   border:Border.all(color:d.color.withOpacity(0.5),width:1.2)),
                 child:Row(children:[
-                  Text(locked?'\u{1F451}':d.emoji,style:const TextStyle(fontSize:20)),
+                  Text(locked?'👑':d.emoji,style:const TextStyle(fontSize:20)),
                   const SizedBox(width:12),
                   Text(d.label,style:TextStyle(color:d.color,fontSize:15,fontWeight:FontWeight.w700)),
                   if(locked)...[const SizedBox(width:8),Container(padding:const EdgeInsets.symmetric(horizontal:8,vertical:2),
@@ -1025,7 +1025,7 @@ class _DiffCard extends StatelessWidget {
             Container(width:56,height:56,decoration:BoxDecoration(shape:BoxShape.circle,
               color:unlocked?diff.color.withOpacity(0.2):Pal.ts.withOpacity(0.1),
               border:Border.all(color:unlocked?diff.color.withOpacity(0.5):Pal.ts.withOpacity(0.2))),
-              child:Center(child:Text(unlocked?diff.emoji:(isPrem?'\u{1F451}':'\u{1F512}'),style:const TextStyle(fontSize:26)))),
+              child:Center(child:Text(unlocked?diff.emoji:(isPrem?'👑':'🔒'),style:const TextStyle(fontSize:26)))),
             const SizedBox(width:16),
             Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
               Row(children:[
@@ -1044,7 +1044,7 @@ class _DiffCard extends StatelessWidget {
           ])));
     });
   }
-  void _paywall(BuildContext ctx){showModalBottomSheet(context:ctx,isScrollControlled:true,backgroundColor:Colors.transparent,builder:(_)=>PaywallSheet(onCode:(c){final ok=PurchaseService.instance.tryDev(c);Navigator.pop(ctx);ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content:Text(ok?'Code confirmed! All unlocked \u{1F389}':'Invalid code'),backgroundColor:ok?Pal.green:Pal.red));}));}
+  void _paywall(BuildContext ctx){showModalBottomSheet(context:ctx,isScrollControlled:true,backgroundColor:Colors.transparent,builder:(_)=>PaywallSheet(onCode:(c){final ok=PurchaseService.instance.tryDev(c);Navigator.pop(ctx);ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content:Text(ok?'Code confirmed! All unlocked 🎉':'Invalid code'),backgroundColor:ok?Pal.green:Pal.red));}));}
 }
 
 // ═══════════════════════════════════════════════
@@ -1547,7 +1547,7 @@ class _QuitDlg extends StatelessWidget {
   @override Widget build(BuildContext context){
     return Dialog(backgroundColor:Pal.card,shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(24)),
       child:Padding(padding:const EdgeInsets.all(24),child:Column(mainAxisSize:MainAxisSize.min,children:[
-        const Text('\u{1F6AA}',style:TextStyle(fontSize:48)),const SizedBox(height:12),
+        const Text('🚪',style:TextStyle(fontSize:48)),const SizedBox(height:12),
         const Text('Quit Level?',style:TextStyle(color:Pal.tp,fontSize:20,fontWeight:FontWeight.w800)),
         const SizedBox(height:8),
         const Text('Progress will not be saved',style:const TextStyle(color:Pal.ts,fontSize:14,height:1.5)),
@@ -1635,7 +1635,7 @@ class _CS extends State<CompleteScreen> with TickerProviderStateMixin {
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           ScaleTransition(
             scale: CurvedAnimation(parent: _enter, curve: Curves.easeOutBack),
-            child: Text(perfect ? '\u{1F3C6}' : '\u{1F3AF}',
+            child: Text(perfect ? '🏆' : '🎯',
               style: const TextStyle(fontSize: 90))),
           const SizedBox(height: 16),
           FadeTransition(opacity: _enter,
@@ -1741,7 +1741,7 @@ class _FS extends State<FailedScreen> with SingleTickerProviderStateMixin {
     return Scaffold(backgroundColor:Pal.bg,body:Stack(children:[
       const StarField(),
       SafeArea(child:Center(child:SingleChildScrollView(padding:const EdgeInsets.all(32),child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[
-        ScaleTransition(scale:CurvedAnimation(parent:_c,curve:Curves.easeOutBack),child:const Text('\u{1F494}',style:TextStyle(fontSize:90))),
+        ScaleTransition(scale:CurvedAnimation(parent:_c,curve:Curves.easeOutBack),child:const Text('💔',style:TextStyle(fontSize:90))),
         const SizedBox(height:16),
       FadeTransition(opacity:_c,child:const Text('Failed!',style:TextStyle(color:Pal.red,fontSize:36,fontWeight:FontWeight.w900))),
         const SizedBox(height:8),
@@ -1774,7 +1774,7 @@ class _RestartDlg extends StatelessWidget {
   @override Widget build(BuildContext context){
     return Dialog(backgroundColor:Pal.card,shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(24)),
       child:Padding(padding:const EdgeInsets.all(24),child:Column(mainAxisSize:MainAxisSize.min,children:[
-        const Text('\u{1F504}',style:TextStyle(fontSize:48)),const SizedBox(height:12),
+        const Text('🔄',style:TextStyle(fontSize:48)),const SizedBox(height:12),
         const Text('Start Over?',style:TextStyle(color:Pal.tp,fontSize:20,fontWeight:FontWeight.w800)),
         const SizedBox(height:8),
         const Text('Level restarts. Earned stars are saved.',style:const TextStyle(color:Pal.ts,fontSize:14,height:1.5)),
