@@ -43,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Android signing — do not commit to git
+/android/key.properties
+/android/app/*.jks
