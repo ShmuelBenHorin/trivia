@@ -31,12 +31,12 @@ class Cfg {
   // פרסומת מלאה 30 שניות → +5 Energy
   static String get adRewardedUnitId =>
       defaultTargetPlatform == TargetPlatform.iOS
-          ? 'ca-app-pub-3940256099942544/1712485313'  // iOS Rewarded (יש להחליף)
+          ? 'ca-app-pub-1305167445502870/2334588710'  // iOS Rewarded
           : 'ca-app-pub-1305167445502870/2000470236'; // Android Rewarded
 
   static String get adRewardedInterstitialUnitId =>
       defaultTargetPlatform == TargetPlatform.iOS
-          ? 'ca-app-pub-3940256099942544/6978759866'  // iOS Rewarded Interstitial (test)
+          ? 'ca-app-pub-1305167445502870/7141116272'  // iOS Rewarded Interstitial
           : 'ca-app-pub-1305167445502870/3268396430'; // Android Rewarded Interstitial
 
   static const adRewardedEnergy             = 5; // Energy מפרסומת מלאה
