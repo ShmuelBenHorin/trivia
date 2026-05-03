@@ -32,16 +32,9 @@ class Cfg {
   static String get adRewardedUnitId =>
       defaultTargetPlatform == TargetPlatform.iOS
           ? 'ca-app-pub-3940256099942544/1712485313'  // ← החלף ב-iOS Rewarded Ad Unit ID שלך
-          : 'ca-app-pub-3940256099942544/5224354917'; // ← החלף ב-Android Rewarded Ad Unit ID שלך
+          : 'ca-app-pub-1305167445502870/2000470236'; // Android Rewarded Ad Unit ID
 
-  // פרסומת עם דילוג אחרי 5 שניות → +1 Energy
-  static String get adInterstitialUnitId =>
-      defaultTargetPlatform == TargetPlatform.iOS
-          ? 'ca-app-pub-3940256099942544/4411468910'  // ← החלף ב-iOS Interstitial Ad Unit ID שלך
-          : 'ca-app-pub-3940256099942544/1033173712'; // ← החלף ב-Android Interstitial Ad Unit ID שלך
-
-  static const adRewardedEnergy     = 5;  // Energy מפרסומת מלאה
-  static const adInterstitialEnergy = 1;  // Energy מפרסומת עם דילוג
+  static const adRewardedEnergy = 5;  // Energy מפרסומת Rewarded
 
   static const questionsPerLevel    = 10;
   static const starsPerLevel        = 3;
@@ -567,9 +560,8 @@ class _EnergyChipState extends State<EnergyChip> with SingleTickerProviderStateM
 }
 
 // ═══════════════════════════════════════════════
-//  AD REWARD DIALOG — שני סוגי פרסומות AdMob
+//  AD REWARD DIALOG — Rewarded Ad בלבד
 //  • Rewarded (30 שניות) → +5 Energy
-//  • Interstitial (דילוג אחרי 5 שניות) → +1 Energy
 // ═══════════════════════════════════════════════
 class _AdRewardDialog extends StatefulWidget {
   @override State<_AdRewardDialog> createState() => _AdRewardDialogState();
@@ -577,44 +569,28 @@ class _AdRewardDialog extends StatefulWidget {
 
 class _AdRewardDialogState extends State<_AdRewardDialog>
     with SingleTickerProviderStateMixin {
-  // מצב כללי
-  bool _loadingRewarded     = true;
-  bool _loadingInterstitial = true;
-  bool _done                = false;
-  int  _earnedEnergy        = 0;
+  bool _loadingRewarded = true;
+  bool _done            = false;
+  int  _earnedEnergy    = 0;
 
   late final AnimationController _anim;
-  RewardedAd?      _rewardedAd;
-  InterstitialAd?  _interstitialAd;
+  RewardedAd? _rewardedAd;
 
   @override
   void initState() {
     super.initState();
     _anim = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
     _loadRewardedAd();
-    _loadInterstitialAd();
   }
 
-  // ── טעינת פרסומת Rewarded (30 שניות, +5 Energy) ──────────────────────────
+  // ── טעינת פרסומת Rewarded ────────────────────────────────────────────────
   void _loadRewardedAd() {
     RewardedAd.load(
       adUnitId: Cfg.adRewardedUnitId,
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded:       (ad) { _rewardedAd = ad;    if (mounted) setState(() => _loadingRewarded = false); },
-        onAdFailedToLoad: (_)  {                       if (mounted) setState(() => _loadingRewarded = false); },
-      ),
-    );
-  }
-
-  // ── טעינת פרסומת Interstitial (דילוג אחרי 5 שניות, +1 Energy) ────────────
-  void _loadInterstitialAd() {
-    InterstitialAd.load(
-      adUnitId: Cfg.adInterstitialUnitId,
-      request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded:       (ad) { _interstitialAd = ad; if (mounted) setState(() => _loadingInterstitial = false); },
-        onAdFailedToLoad: (_)  {                        if (mounted) setState(() => _loadingInterstitial = false); },
+        onAdLoaded:       (ad) { _rewardedAd = ad; if (mounted) setState(() => _loadingRewarded = false); },
+        onAdFailedToLoad: (_)  {                    if (mounted) setState(() => _loadingRewarded = false); },
       ),
     );
   }
@@ -628,21 +604,6 @@ class _AdRewardDialogState extends State<_AdRewardDialog>
       onAdFailedToShowFullScreenContent: (a, _) { a.dispose(); _rewardedAd = null; },
     );
     ad.show(onUserEarnedReward: (_, __) => _onComplete(Cfg.adRewardedEnergy));
-  }
-
-  // ── הצגת פרסומת Interstitial ──────────────────────────────────────────────
-  void _showInterstitialAd() {
-    final ad = _interstitialAd;
-    if (ad == null) return;
-    ad.fullScreenContentCallback = FullScreenContentCallback(
-      onAdDismissedFullScreenContent: (a) {
-        a.dispose(); _interstitialAd = null;
-        // נותנים +1 גם אם דילגו — כי ראו לפחות חלק מהפרסומת
-        _onComplete(Cfg.adInterstitialEnergy);
-      },
-      onAdFailedToShowFullScreenContent: (a, _) { a.dispose(); _interstitialAd = null; },
-    );
-    ad.show();
   }
 
   // ── השלמה ─────────────────────────────────────────────────────────────────
@@ -662,7 +623,6 @@ class _AdRewardDialogState extends State<_AdRewardDialog>
   @override
   void dispose() {
     _rewardedAd?.dispose();
-    _interstitialAd?.dispose();
     _anim.dispose();
     super.dispose();
   }
@@ -676,40 +636,26 @@ class _AdRewardDialogState extends State<_AdRewardDialog>
     );
   }
 
-  // ── מסך ראשי עם שתי אפשרויות ────────────────────────────────────────────
+  // ── מסך ראשי ─────────────────────────────────────────────────────────────
   Widget _mainView() => Column(mainAxisSize: MainAxisSize.min, children: [
     const Text('⚡', style: TextStyle(fontSize: 48)),
     const SizedBox(height: 10),
     const Text('Get Energy',
       style: TextStyle(color: Pal.tp, fontSize: 22, fontWeight: FontWeight.w800)),
     const SizedBox(height: 4),
-    const Text('Choose an ad to watch',
+    const Text('Watch a short video to earn energy',
       style: TextStyle(color: Pal.ts, fontSize: 13)),
     const SizedBox(height: 22),
 
-    // ── כפתור 1: Rewarded (30 שניות, +5) ────────────────────────────────
     _AdButton(
       loading:    _loadingRewarded,
       available:  _rewardedAd != null,
       emoji:      '🎬',
-      title:      'Full video (30 sec)',
+      title:      'Watch video',
       reward:     '+5 ⚡',
-      subtitle:   'Cannot skip',
+      subtitle:   '~30 seconds',
       color:      Pal.gold,
       onTap:      _showRewardedAd,
-    ),
-    const SizedBox(height: 12),
-
-    // ── כפתור 2: Interstitial (דילוג אחרי 5 שניות, +1) ──────────────────
-    _AdButton(
-      loading:    _loadingInterstitial,
-      available:  _interstitialAd != null,
-      emoji:      '⏩',
-      title:      'Short ad',
-      reward:     '+1 ⚡',
-      subtitle:   'Can skip after 5 sec',
-      color:      const Color(0xFF4D96FF),
-      onTap:      _showInterstitialAd,
     ),
     const SizedBox(height: 14),
 
