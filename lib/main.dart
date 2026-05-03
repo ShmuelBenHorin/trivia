@@ -456,7 +456,7 @@ class App extends StatelessWidget {
   const App({super.key});
   @override Widget build(BuildContext context) {
     return ListenableBuilder(listenable:PurchaseService.instance,
-      builder:(_,__)=>MaterialApp(title:'Trivia Master',debugShowCheckedModeBanner:false,
+      builder:(_,__)=>MaterialApp(title:'Master Trivia',debugShowCheckedModeBanner:false,
         theme:ThemeData.dark().copyWith(scaffoldBackgroundColor:Pal.bg,useMaterial3:true),
         home:const HomeScreen()));
   }
@@ -807,7 +807,7 @@ class _HS extends State<HomeScreen> with TickerProviderStateMixin {
         Padding(padding:const EdgeInsets.fromLTRB(20,16,20,0),
           child:Row(children:[
             ShaderMask(shaderCallback:(b)=>const LinearGradient(colors:[Pal.gold,Color(0xFFFF9F0A)]).createShader(b),
-              child:const Text('Trivia Master',style:TextStyle(fontSize:36,fontWeight:FontWeight.w900,color:Colors.white,letterSpacing:3))),
+              child:const Text('Master Trivia',style:TextStyle(fontSize:36,fontWeight:FontWeight.w900,color:Colors.white,letterSpacing:3))),
             const Spacer(),
             GestureDetector(
               onTap: () => Navigator.push(context, _slide(const MistakesScreen())),
