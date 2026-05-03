@@ -31,10 +31,16 @@ class Cfg {
   // פרסומת מלאה 30 שניות → +5 Energy
   static String get adRewardedUnitId =>
       defaultTargetPlatform == TargetPlatform.iOS
-          ? 'ca-app-pub-3940256099942544/1712485313'  // ← החלף ב-iOS Rewarded Ad Unit ID שלך
-          : 'ca-app-pub-1305167445502870/2000470236'; // Android Rewarded Ad Unit ID
+          ? 'ca-app-pub-3940256099942544/1712485313'  // iOS Rewarded (יש להחליף)
+          : 'ca-app-pub-1305167445502870/2000470236'; // Android Rewarded
 
-  static const adRewardedEnergy = 5;  // Energy מפרסומת Rewarded
+  static String get adRewardedInterstitialUnitId =>
+      defaultTargetPlatform == TargetPlatform.iOS
+          ? 'ca-app-pub-3940256099942544/6978759866'  // iOS Rewarded Interstitial (test)
+          : 'ca-app-pub-1305167445502870/3268396430'; // Android Rewarded Interstitial
+
+  static const adRewardedEnergy             = 5; // Energy מפרסומת מלאה
+  static const adRewardedInterstitialEnergy = 1; // Energy מפרסומת עם דילוג
 
   static const questionsPerLevel    = 10;
   static const starsPerLevel        = 3;
@@ -560,8 +566,9 @@ class _EnergyChipState extends State<EnergyChip> with SingleTickerProviderStateM
 }
 
 // ═══════════════════════════════════════════════
-//  AD REWARD DIALOG — Rewarded Ad בלבד
-//  • Rewarded (30 שניות) → +5 Energy
+//  AD REWARD DIALOG — שני סוגי Rewarded
+//  • Rewarded (30 שניות, לא ניתן לדילוג) → +5 Energy
+//  • Rewarded Interstitial (דילוג אחרי כמה שניות) → +1 Energy
 // ═══════════════════════════════════════════════
 class _AdRewardDialog extends StatefulWidget {
   @override State<_AdRewardDialog> createState() => _AdRewardDialogState();
@@ -569,21 +576,24 @@ class _AdRewardDialog extends StatefulWidget {
 
 class _AdRewardDialogState extends State<_AdRewardDialog>
     with SingleTickerProviderStateMixin {
-  bool _loadingRewarded = true;
-  bool _done            = false;
-  int  _earnedEnergy    = 0;
+  bool _loadingRewarded             = true;
+  bool _loadingRewardedInterstitial = true;
+  bool _done                        = false;
+  int  _earnedEnergy                = 0;
 
   late final AnimationController _anim;
-  RewardedAd? _rewardedAd;
+  RewardedAd?             _rewardedAd;
+  RewardedInterstitialAd? _rewardedInterstitialAd;
 
   @override
   void initState() {
     super.initState();
     _anim = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
     _loadRewardedAd();
+    _loadRewardedInterstitialAd();
   }
 
-  // ── טעינת פרסומת Rewarded ────────────────────────────────────────────────
+  // ── טעינת Rewarded (30 שניות) ────────────────────────────────────────────
   void _loadRewardedAd() {
     RewardedAd.load(
       adUnitId: Cfg.adRewardedUnitId,
@@ -595,15 +605,38 @@ class _AdRewardDialogState extends State<_AdRewardDialog>
     );
   }
 
-  // ── הצגת פרסומת Rewarded ──────────────────────────────────────────────────
+  // ── טעינת Rewarded Interstitial (עם דילוג) ──────────────────────────────
+  void _loadRewardedInterstitialAd() {
+    RewardedInterstitialAd.load(
+      adUnitId: Cfg.adRewardedInterstitialUnitId,
+      request: const AdRequest(),
+      rewardedInterstitialAdLoadCallback: RewardedInterstitialAdLoadCallback(
+        onAdLoaded:       (ad) { _rewardedInterstitialAd = ad; if (mounted) setState(() => _loadingRewardedInterstitial = false); },
+        onAdFailedToLoad: (_)  {                                if (mounted) setState(() => _loadingRewardedInterstitial = false); },
+      ),
+    );
+  }
+
+  // ── הצגת Rewarded ─────────────────────────────────────────────────────────
   void _showRewardedAd() {
     final ad = _rewardedAd;
     if (ad == null) return;
     ad.fullScreenContentCallback = FullScreenContentCallback(
-      onAdDismissedFullScreenContent: (a) { a.dispose(); _rewardedAd = null; },
+      onAdDismissedFullScreenContent:    (a) { a.dispose(); _rewardedAd = null; },
       onAdFailedToShowFullScreenContent: (a, _) { a.dispose(); _rewardedAd = null; },
     );
     ad.show(onUserEarnedReward: (_, __) => _onComplete(Cfg.adRewardedEnergy));
+  }
+
+  // ── הצגת Rewarded Interstitial ────────────────────────────────────────────
+  void _showRewardedInterstitialAd() {
+    final ad = _rewardedInterstitialAd;
+    if (ad == null) return;
+    ad.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent:    (a) { a.dispose(); _rewardedInterstitialAd = null; },
+      onAdFailedToShowFullScreenContent: (a, _) { a.dispose(); _rewardedInterstitialAd = null; },
+    );
+    ad.show(onUserEarnedReward: (_, __) => _onComplete(Cfg.adRewardedInterstitialEnergy));
   }
 
   // ── השלמה ─────────────────────────────────────────────────────────────────
@@ -623,6 +656,7 @@ class _AdRewardDialogState extends State<_AdRewardDialog>
   @override
   void dispose() {
     _rewardedAd?.dispose();
+    _rewardedInterstitialAd?.dispose();
     _anim.dispose();
     super.dispose();
   }
@@ -636,26 +670,40 @@ class _AdRewardDialogState extends State<_AdRewardDialog>
     );
   }
 
-  // ── מסך ראשי ─────────────────────────────────────────────────────────────
+  // ── מסך ראשי עם שני כפתורים ──────────────────────────────────────────────
   Widget _mainView() => Column(mainAxisSize: MainAxisSize.min, children: [
     const Text('⚡', style: TextStyle(fontSize: 48)),
     const SizedBox(height: 10),
     const Text('Get Energy',
       style: TextStyle(color: Pal.tp, fontSize: 22, fontWeight: FontWeight.w800)),
     const SizedBox(height: 4),
-    const Text('Watch a short video to earn energy',
+    const Text('Choose an ad to watch',
       style: TextStyle(color: Pal.ts, fontSize: 13)),
     const SizedBox(height: 22),
 
+    // כפתור 1: Rewarded מלא
     _AdButton(
-      loading:    _loadingRewarded,
-      available:  _rewardedAd != null,
-      emoji:      '🎬',
-      title:      'Watch video',
-      reward:     '+5 ⚡',
-      subtitle:   '~30 seconds',
-      color:      Pal.gold,
-      onTap:      _showRewardedAd,
+      loading:   _loadingRewarded,
+      available: _rewardedAd != null,
+      emoji:     '🎬',
+      title:     'Full video',
+      reward:    '+5 ⚡',
+      subtitle:  'Cannot skip · ~30 sec',
+      color:     Pal.gold,
+      onTap:     _showRewardedAd,
+    ),
+    const SizedBox(height: 12),
+
+    // כפתור 2: Rewarded Interstitial עם דילוג
+    _AdButton(
+      loading:   _loadingRewardedInterstitial,
+      available: _rewardedInterstitialAd != null,
+      emoji:     '⏩',
+      title:     'Short ad',
+      reward:    '+1 ⚡',
+      subtitle:  'Can skip after a few sec',
+      color:     const Color(0xFF4D96FF),
+      onTap:     _showRewardedInterstitialAd,
     ),
     const SizedBox(height: 14),
 
