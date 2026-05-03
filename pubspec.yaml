@@ -1,7 +1,7 @@
 name: yidaan_en
 description: "Yidaan — Trivia Levels"
 publish_to: 'none'
-version: 1.0.0+5
+version: 1.1.0+6
 
 environment:
   sdk: ^3.11.1
