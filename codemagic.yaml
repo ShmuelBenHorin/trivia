@@ -5,11 +5,11 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: master.trivia
+        bundle_identifier: trivia.master
       groups:
         - team
       vars:
-        BUNDLE_ID: master.trivia
+        BUNDLE_ID: trivia.master
         XCODE_WORKSPACE: ios/Runner.xcworkspace
         XCODE_SCHEME: Runner
     scripts:

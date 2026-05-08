@@ -13,7 +13,7 @@ val keyProperties = Properties()
 keyProperties.load(FileInputStream(keyPropertiesFile))
 
 android {
-    namespace = "master.trivia"
+    namespace = "trivia.master"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -27,7 +27,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "master.trivia"
+        applicationId = "trivia.master"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
