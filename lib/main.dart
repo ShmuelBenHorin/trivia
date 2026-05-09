@@ -17,7 +17,7 @@ import 'sfx_stub.dart' if (dart.library.html) 'sfx_web.dart';
 // ═══════════════════════════════════════════════
 class Cfg {
   static const rcAndroid            = 'goog_DehYTUZgpswOdWhZjkpuudIrfCn';
-  static const rciOS                = 'appl_DSEyAVZKuOktZXgzNqiPKhjnOlO';
+  static const rciOS                = 'appl_kjrhzvyJdOWJVhAfLRZlgehKPKL';
   static const entitlement          = 'premium';
   static const devCode              = 'shmuel1231';
   static const mockPremium          = false;
