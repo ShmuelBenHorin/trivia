@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
@@ -441,6 +442,11 @@ class Pal {
 // ═══════════════════════════════════════════════
 //  MAIN
 // ═══════════════════════════════════════════════
+Future<void> _launchUrl(String url) async {
+  final uri = Uri.parse(url);
+  if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp,DeviceOrientation.portraitDown]);
@@ -891,13 +897,7 @@ void _showCatDiffPicker(BuildContext ctx,String key,String name,String emoji,Col
                 Navigator.pop(ctx);
                 if(locked){
                   showModalBottomSheet(context:ctx,isScrollControlled:true,backgroundColor:Colors.transparent,
-                    builder:(_)=>PaywallSheet(onCode:(c){
-                      final ok=PurchaseService.instance.tryDev(c);
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                        content:Text(ok?'Code confirmed! All unlocked 🎉':'Invalid code'),
-                        backgroundColor:ok?Pal.green:Pal.red));
-                    }));
+                    builder:(_)=>const PaywallSheet());
                   return;
                 }
                 if(!EnergyService.instance.has){Navigator.push(ctx,_slide(const NoEnergyScreen()));return;}
@@ -1038,7 +1038,7 @@ class _DiffCard extends StatelessWidget {
           ])));
     });
   }
-  void _paywall(BuildContext ctx){showModalBottomSheet(context:ctx,isScrollControlled:true,backgroundColor:Colors.transparent,builder:(_)=>PaywallSheet(onCode:(c){final ok=PurchaseService.instance.tryDev(c);Navigator.pop(ctx);ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content:Text(ok?'Code confirmed! All unlocked 🎉':'Invalid code'),backgroundColor:ok?Pal.green:Pal.red));}));}
+  void _paywall(BuildContext ctx){showModalBottomSheet(context:ctx,isScrollControlled:true,backgroundColor:Colors.transparent,builder:(_)=>const PaywallSheet());}
 }
 
 // ═══════════════════════════════════════════════
@@ -1934,13 +1934,7 @@ class _NES extends State<NoEnergyScreen> with SingleTickerProviderStateMixin {
                   onTap:(){
                     Navigator.pop(context);
                     showModalBottomSheet(context:context,isScrollControlled:true,backgroundColor:Colors.transparent,
-                      builder:(_)=>PaywallSheet(onCode:(c){
-                        final ok=PurchaseService.instance.tryDev(c);
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content:Text(ok?'Code confirmed! 🎉':'Invalid code'),
-                          backgroundColor:ok?Pal.green:Pal.red));
-                      }));
+                      builder:(_)=>const PaywallSheet());
                   },
                   child:Container(width:double.infinity,
                     padding:const EdgeInsets.symmetric(vertical:14),
@@ -1963,17 +1957,14 @@ class _NES extends State<NoEnergyScreen> with SingleTickerProviderStateMixin {
 //  PAYWALL
 // ═══════════════════════════════════════════════
 class PaywallSheet extends StatefulWidget {
-  final void Function(String) onCode;
-  const PaywallSheet({super.key,required this.onCode});
+  const PaywallSheet({super.key});
   @override State<PaywallSheet> createState()=>_PS();
 }
 class _PS extends State<PaywallSheet>{
-  bool _showCode=false;
   String? _errMsg;
-  final _ctrl=TextEditingController();
   @override void initState(){super.initState();PurchaseService.instance.addListener(_rebuild);}
   void _rebuild(){if(mounted)setState((){});}
-  @override void dispose(){PurchaseService.instance.removeListener(_rebuild);_ctrl.dispose();super.dispose();}
+  @override void dispose(){PurchaseService.instance.removeListener(_rebuild);super.dispose();}
   @override Widget build(BuildContext context){
     final ps=PurchaseService.instance;
     return Container(
@@ -1998,29 +1989,6 @@ class _PS extends State<PaywallSheet>{
           _bf('🚫','No ads'),
           _bf('🔓','All future content included'),
           const SizedBox(height:24),
-          GestureDetector(
-            onTap:()=>setState(()=>_showCode=!_showCode),
-            child:Text('Have an access code?',style:TextStyle(color:Pal.ts.withOpacity(0.6),fontSize:12,decoration:TextDecoration.underline))),
-          if(_showCode)...[
-            const SizedBox(height:12),
-            Row(children:[
-              Expanded(child:TextField(controller:_ctrl,
-                style:const TextStyle(color:Pal.tp),
-                decoration:InputDecoration(
-                  hintText:'Enter code...',
-                  hintStyle:const TextStyle(color:Pal.ts),
-                  filled:true,fillColor:Pal.card,
-                  border:OutlineInputBorder(borderRadius:BorderRadius.circular(12)),
-                  contentPadding:const EdgeInsets.symmetric(horizontal:16,vertical:12)))),
-              const SizedBox(width:10),
-              GestureDetector(
-                onTap:()=>widget.onCode(_ctrl.text.trim()),
-                child:Container(
-                  padding:const EdgeInsets.symmetric(horizontal:16,vertical:14),
-                  decoration:BoxDecoration(color:Pal.accent,borderRadius:BorderRadius.circular(12)),
-                  child:const Text('Confirm',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w900)))),
-            ]),
-          ],
           const SizedBox(height:20),
         ]))),
         Padding(padding:EdgeInsets.fromLTRB(24,0,24,MediaQuery.of(context).padding.bottom+16),
@@ -2063,6 +2031,22 @@ class _PS extends State<PaywallSheet>{
                 }
               },
               child:const Text('Restore Purchases',style:TextStyle(color:Pal.ts,fontSize:13,decoration:TextDecoration.underline))),
+            const SizedBox(height:16),
+            const Text(
+              'Subscription auto-renews at $4.99/month unless cancelled at least 24 hours before the end of the current period. Manage or cancel in your Apple ID settings.',
+              textAlign:TextAlign.center,
+              style:TextStyle(color:Pal.ts,fontSize:11)),
+            const SizedBox(height:8),
+            Row(mainAxisAlignment:MainAxisAlignment.center,children:[
+              GestureDetector(
+                onTap:()=>_launchUrl('https://sites.google.com/view/privacy-policy-trivia-master/%D7%91%D7%99%D7%AA'),
+                child:const Text('Privacy Policy',style:TextStyle(color:Pal.ts,fontSize:11,decoration:TextDecoration.underline))),
+              const Text('  |  ',style:TextStyle(color:Pal.ts,fontSize:11)),
+              GestureDetector(
+                onTap:()=>_launchUrl('https://sites.google.com/view/terms-of-use-trivia-master-en/%D7%91%D7%99%D7%AA'),
+                child:const Text('Terms of Use',style:TextStyle(color:Pal.ts,fontSize:11,decoration:TextDecoration.underline))),
+            ]),
+            const SizedBox(height:8),
 
           ])),
       ]));
