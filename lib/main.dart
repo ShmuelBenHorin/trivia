@@ -2033,7 +2033,7 @@ class _PS extends State<PaywallSheet>{
               child:const Text('Restore Purchases',style:TextStyle(color:Pal.ts,fontSize:13,decoration:TextDecoration.underline))),
             const SizedBox(height:16),
             const Text(
-              'Subscription auto-renews at $4.99/month unless cancelled at least 24 hours before the end of the current period. Manage or cancel in your Apple ID settings.',
+              r'Subscription auto-renews at $4.99/month unless cancelled at least 24 hours before the end of the current period. Manage or cancel in your Apple ID settings.',
               textAlign:TextAlign.center,
               style:TextStyle(color:Pal.ts,fontSize:11)),
             const SizedBox(height:8),
