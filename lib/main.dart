@@ -2116,7 +2116,7 @@ class _PS extends State<PaywallSheet>{
               boxShadow:[BoxShadow(color:Pal.premium.withOpacity(0.6),blurRadius:24)]),
             child:const Center(child:Text('👑',style:TextStyle(fontSize:38)))),
           const SizedBox(height:16),
-          const Text('Yidaan Pro',style:TextStyle(color:Pal.tp,fontSize:28,fontWeight:FontWeight.w900)),
+          const Text('Master Trivia Pro',style:TextStyle(color:Pal.tp,fontSize:28,fontWeight:FontWeight.w900)),
           const SizedBox(height:6),
           const Text('\$4.99/month',style:TextStyle(color:Pal.premium,fontSize:18,fontWeight:FontWeight.w700)),
           const SizedBox(height:24),
