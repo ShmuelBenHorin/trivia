@@ -464,6 +464,7 @@ class GameState extends ChangeNotifier {
     if(_stars==Cfg.starsPerLevel)await Sfx.perfect();
     await LevelService.instance.save(diff,levelIdx,_stars);
     _phase=Phase.complete;
+    notifyListeners();
   }
   void dispose(){_t?.cancel();}
 }
