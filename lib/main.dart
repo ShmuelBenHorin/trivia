@@ -40,7 +40,7 @@ class Cfg {
           ? 'ca-app-pub-1305167445502870/7141116272'  // iOS Rewarded Interstitial
           : 'ca-app-pub-1305167445502870/3268396430'; // Android Rewarded Interstitial
 
-  static const adRewardedEnergy             = 5; // Energy מפרסומת מלאה
+  static const adRewardedEnergy             = 2; // brains from ad
   static const adRewardedInterstitialEnergy = 1; // Energy מפרסומת עם דילוג
 
   static const questionsPerLevel    = 10;
@@ -271,6 +271,11 @@ class EnergyService extends ChangeNotifier {
     final mins = diff.inMinutes + 1;
     return mins.toString() + ' min';
   }
+  int get secondsUntilNext {
+    if (_e >= maxE) return 0;
+    final diff = _last.add(Duration(minutes: Cfg.energyRechargeMins)).difference(DateTime.now());
+    return diff.inSeconds.clamp(0, Cfg.energyRechargeMins * 60);
+  }
   bool get canWatchAd => _e < maxE && !PurchaseService.instance.isPremium;
   // Energy מפרסומת — amount לפי סוג הפרסומת
   Future<void> rewardFromAd({int amount = Cfg.adRewardedEnergy}) async {
@@ -491,16 +496,144 @@ void main() async {
   // ─── AdMob אתחול ──────────────────────────────────────────────────────────
   if (Cfg.adMobEnabled && !kIsWeb) {
     await MobileAds.instance.initialize();
+    AdPreloader.preload();
   }
-  runApp(const App());
+  final _prefs = await SharedPreferences.getInstance();
+  final showOnboarding = !(_prefs.getBool('onboarding_done') ?? false);
+  runApp(App(showOnboarding: showOnboarding));
 }
 class App extends StatelessWidget {
-  const App({super.key});
+  final bool showOnboarding;
+  const App({super.key, required this.showOnboarding});
   @override Widget build(BuildContext context) {
     return ListenableBuilder(listenable:PurchaseService.instance,
       builder:(_,__)=>MaterialApp(title:'Master Trivia',debugShowCheckedModeBanner:false,
         theme:ThemeData.dark().copyWith(scaffoldBackgroundColor:Pal.bg,useMaterial3:true),
-        home:const HomeScreen()));
+        home: showOnboarding ? const OnboardingScreen() : const HomeScreen()));
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  ONBOARDING
+// ═══════════════════════════════════════════════
+class _OPage {
+  final String emoji, title, body;
+  const _OPage({required this.emoji, required this.title, required this.body});
+  Widget build() => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 36),
+    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Text(emoji, style: const TextStyle(fontSize: 84)),
+      const SizedBox(height: 32),
+      Text(title, textAlign: TextAlign.center,
+        style: const TextStyle(color: Pal.tp, fontSize: 26, fontWeight: FontWeight.w900, height: 1.3)),
+      const SizedBox(height: 16),
+      Text(body, textAlign: TextAlign.center,
+        style: const TextStyle(color: Pal.ts, fontSize: 16, height: 1.75)),
+    ]),
+  );
+}
+
+class OnboardingScreen extends StatefulWidget {
+  const OnboardingScreen({super.key});
+  @override State<OnboardingScreen> createState() => _OnboardingState();
+}
+class _OnboardingState extends State<OnboardingScreen> {
+  final _ctrl = PageController();
+  int _page = 0;
+
+  static const _pages = [
+    _OPage(
+      emoji: '👋',
+      title: 'Welcome to Master Trivia!',
+      body: 'Test your knowledge across dozens of topics\nAnswer questions and level up!',
+    ),
+    _OPage(
+      emoji: '🧠',
+      title: 'Protect Your Brains!',
+      body: 'You lose a brain on each wrong answer\n1 brain recharges every 15 minutes\nWatch an ad to refill instantly',
+    ),
+    _OPage(
+      emoji: '⭐',
+      title: 'Collect Stars & Advance',
+      body: 'Earn up to 3 stars per level\nCollect stars to unlock new levels\nReach Medium and Hard difficulty!',
+    ),
+  ];
+
+  void _next() {
+    if (_page < _pages.length - 1) {
+      _ctrl.nextPage(duration: const Duration(milliseconds: 350), curve: Curves.easeInOut);
+    } else {
+      _done();
+    }
+  }
+
+  Future<void> _done() async {
+    final p = await SharedPreferences.getInstance();
+    await p.setBool('onboarding_done', true);
+    if (mounted) Navigator.pushReplacement(context, _slide(const HomeScreen()));
+  }
+
+  @override void dispose() { _ctrl.dispose(); super.dispose(); }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Pal.bg,
+      body: Stack(children: [
+        const StarField(),
+        SafeArea(child: Column(children: [
+          Align(
+            alignment: Alignment.topRight,
+            child: TextButton(
+              onPressed: _done,
+              child: const Text('Skip', style: TextStyle(color: Pal.ts, fontSize: 15)),
+            ),
+          ),
+          Expanded(
+            child: PageView.builder(
+              controller: _ctrl,
+              onPageChanged: (i) => setState(() => _page = i),
+              itemCount: _pages.length,
+              itemBuilder: (_, i) => _pages[i].build(),
+            ),
+          ),
+          Row(mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(_pages.length, (i) =>
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                width: _page == i ? 24 : 8, height: 8,
+                decoration: BoxDecoration(
+                  color: _page == i ? Pal.gold : Pal.ts.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(4)),
+              )
+            ),
+          ),
+          const SizedBox(height: 28),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: GestureDetector(
+              onTap: _next,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(colors: [Color(0xFF4D96FF), Color(0xFF2E5FCC)]),
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [BoxShadow(color: const Color(0xFF4D96FF).withOpacity(0.4), blurRadius: 16, offset: const Offset(0,4))],
+                ),
+                child: Text(
+                  _page == _pages.length - 1 ? 'Let\'s Play! 🚀' : 'Next  ›',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 36),
+        ])),
+      ]),
+    );
   }
 }
 
@@ -591,10 +724,6 @@ class _EnergyChipState extends State<EnergyChip> with SingleTickerProviderStateM
                   key: ValueKey(e.energy),
                   style: TextStyle(color: c, fontWeight: FontWeight.w900, fontSize: 14))),
               Text('/${e.maxE}', style: const TextStyle(color: Pal.ts, fontSize: 11)),
-              if (e.label.isNotEmpty && e.energy < e.maxE) ...[
-                const SizedBox(width: 6),
-                Text(e.label, style: const TextStyle(color: Pal.gold, fontSize: 10, fontWeight: FontWeight.w700)),
-              ],
               if (e.canWatchAd) ...[
                 const SizedBox(width: 4),
                 const Text('+', style: TextStyle(color: Pal.gold, fontSize: 13, fontWeight: FontWeight.w900)),
@@ -609,84 +738,72 @@ class _EnergyChipState extends State<EnergyChip> with SingleTickerProviderStateM
 }
 
 // ═══════════════════════════════════════════════
-//  AD REWARD DIALOG — שני סוגי Rewarded
-//  • Rewarded (30 שניות, לא ניתן לדילוג) → +5 Energy
-//  • Rewarded Interstitial (דילוג אחרי כמה שניות) → +1 Energy
+//  AD PRELOADER — loads ad in background
+// ═══════════════════════════════════════════════
+class AdPreloader {
+  static RewardedAd? _ad;
+  static bool _loading = false;
+  static bool get isReady => _ad != null;
+  static void preload() {
+    if (_loading || _ad != null || !Cfg.adMobEnabled || kIsWeb) return;
+    _loading = true;
+    RewardedAd.load(
+      adUnitId: Cfg.adRewardedUnitId,
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded:       (ad) { _ad = ad; _loading = false; },
+        onAdFailedToLoad: (_)  { _loading = false; },
+      ),
+    );
+  }
+  static RewardedAd? consume() { final ad=_ad; _ad=null; preload(); return ad; }
+}
+
+// ═══════════════════════════════════════════════
+//  AD REWARD DIALOG — Rewarded (30 sec) → +2 Brains
 // ═══════════════════════════════════════════════
 class _AdRewardDialog extends StatefulWidget {
   @override State<_AdRewardDialog> createState() => _AdRewardDialogState();
 }
-
 class _AdRewardDialogState extends State<_AdRewardDialog>
     with SingleTickerProviderStateMixin {
-  bool _loadingRewarded             = true;
-  bool _loadingRewardedInterstitial = true;
-  bool _done                        = false;
-  int  _earnedEnergy                = 0;
-
+  bool _loading = false;
+  bool _done    = false;
   late final AnimationController _anim;
-  RewardedAd?             _rewardedAd;
-  RewardedInterstitialAd? _rewardedInterstitialAd;
+  RewardedAd? _rewardedAd;
 
   @override
   void initState() {
     super.initState();
     _anim = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
-    _loadRewardedAd();
-    _loadRewardedInterstitialAd();
+    _rewardedAd = AdPreloader.consume();
+    if (_rewardedAd == null) {
+      _loading = true;
+      RewardedAd.load(
+        adUnitId: Cfg.adRewardedUnitId,
+        request: const AdRequest(),
+        rewardedAdLoadCallback: RewardedAdLoadCallback(
+          onAdLoaded:       (ad) { _rewardedAd = ad; if (mounted) setState(() => _loading = false); },
+          onAdFailedToLoad: (_)  {                    if (mounted) setState(() => _loading = false); },
+        ),
+      );
+    }
   }
 
-  // ── טעינת Rewarded (30 שניות) ────────────────────────────────────────────
-  void _loadRewardedAd() {
-    RewardedAd.load(
-      adUnitId: Cfg.adRewardedUnitId,
-      request: const AdRequest(),
-      rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded:       (ad) { _rewardedAd = ad; if (mounted) setState(() => _loadingRewarded = false); },
-        onAdFailedToLoad: (_)  {                    if (mounted) setState(() => _loadingRewarded = false); },
-      ),
-    );
-  }
-
-  // ── טעינת Rewarded Interstitial (עם דילוג) ──────────────────────────────
-  void _loadRewardedInterstitialAd() {
-    RewardedInterstitialAd.load(
-      adUnitId: Cfg.adRewardedInterstitialUnitId,
-      request: const AdRequest(),
-      rewardedInterstitialAdLoadCallback: RewardedInterstitialAdLoadCallback(
-        onAdLoaded:       (ad) { _rewardedInterstitialAd = ad; if (mounted) setState(() => _loadingRewardedInterstitial = false); },
-        onAdFailedToLoad: (_)  {                                if (mounted) setState(() => _loadingRewardedInterstitial = false); },
-      ),
-    );
-  }
-
-  // ── הצגת Rewarded ─────────────────────────────────────────────────────────
-  void _showRewardedAd() {
+  void _showAd() {
     final ad = _rewardedAd;
     if (ad == null) return;
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent:    (a) { a.dispose(); _rewardedAd = null; },
       onAdFailedToShowFullScreenContent: (a, _) { a.dispose(); _rewardedAd = null; },
     );
-    ad.show(onUserEarnedReward: (_, __) => _onComplete(Cfg.adRewardedEnergy));
+    ad.show(onUserEarnedReward: (_, __) => _onComplete());
   }
 
-  // ── הצגת Rewarded Interstitial ────────────────────────────────────────────
-  void _showRewardedInterstitialAd() {
-    final ad = _rewardedInterstitialAd;
-    if (ad == null) return;
-    ad.fullScreenContentCallback = FullScreenContentCallback(
-      onAdDismissedFullScreenContent:    (a) { a.dispose(); _rewardedInterstitialAd = null; },
-      onAdFailedToShowFullScreenContent: (a, _) { a.dispose(); _rewardedInterstitialAd = null; },
-    );
-    ad.show(onUserEarnedReward: (_, __) => _onComplete(Cfg.adRewardedInterstitialEnergy));
-  }
-
-  // ── השלמה ─────────────────────────────────────────────────────────────────
-  Future<void> _onComplete(int energy) async {
-    await EnergyService.instance.rewardFromAd(amount: energy);
+  Future<void> _onComplete() async {
+    await EnergyService.instance.rewardFromAd(amount: Cfg.adRewardedEnergy);
     if (!mounted) return;
-    setState(() { _done = true; _earnedEnergy = energy; });
+    setState(() => _done = true);
     _anim.forward();
     await HapticFeedback.lightImpact();
     await Future.delayed(const Duration(milliseconds: 150));
@@ -696,76 +813,45 @@ class _AdRewardDialogState extends State<_AdRewardDialog>
     });
   }
 
-  @override
-  void dispose() {
-    _rewardedAd?.dispose();
-    _rewardedInterstitialAd?.dispose();
-    _anim.dispose();
-    super.dispose();
-  }
+  @override void dispose() { _rewardedAd?.dispose(); _anim.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
+    if (_done) return Dialog(
+      backgroundColor: Pal.card,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(padding: const EdgeInsets.all(32), child: Column(mainAxisSize: MainAxisSize.min, children: [
+        ScaleTransition(scale: CurvedAnimation(parent: _anim, curve: Curves.easeOutBack),
+          child: const Text('\u{1F9E0}', style: TextStyle(fontSize: 72))),
+        const SizedBox(height: 14),
+        FadeTransition(opacity: _anim,
+          child: const Text('+2 Brains!',
+            style: TextStyle(color: Pal.gold, fontSize: 24, fontWeight: FontWeight.w900))),
+      ])),
+    );
     return Dialog(
       backgroundColor: Pal.card,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Padding(padding: const EdgeInsets.all(24), child: _done ? _doneView() : _mainView()),
+      child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
+        const Text('\u{1F3AC}', style: TextStyle(fontSize: 48)),
+        const SizedBox(height: 10),
+        const Text('Get 2 Brains', style: TextStyle(color: Pal.tp, fontSize: 22, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 4),
+        const Text('Watch a short video', style: TextStyle(color: Pal.ts, fontSize: 13)),
+        const SizedBox(height: 22),
+        _AdButton(
+          loading: _loading, available: _rewardedAd != null,
+          emoji: '\u{1F3AC}', title: 'Full video', reward: '+2 \u{1F9E0}',
+          subtitle: 'Cannot skip · ~30 sec',
+          color: Pal.gold, onTap: _showAd,
+        ),
+        const SizedBox(height: 14),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('No thanks', style: TextStyle(color: Pal.ts))),
+      ])),
     );
   }
-
-  // ── מסך ראשי עם שני כפתורים ──────────────────────────────────────────────
-  Widget _mainView() => Column(mainAxisSize: MainAxisSize.min, children: [
-    const Text('🧠', style: TextStyle(fontSize: 48)),
-    const SizedBox(height: 10),
-    const Text('Get Brains',
-      style: TextStyle(color: Pal.tp, fontSize: 22, fontWeight: FontWeight.w800)),
-    const SizedBox(height: 4),
-    const Text('Choose an ad to watch',
-      style: TextStyle(color: Pal.ts, fontSize: 13)),
-    const SizedBox(height: 22),
-
-    // כפתור 1: Rewarded מלא
-    _AdButton(
-      loading:   _loadingRewarded,
-      available: _rewardedAd != null,
-      emoji:     '🎬',
-      title:     'Full video',
-      reward:    '+5 🧠',
-      subtitle:  'Cannot skip · ~30 sec',
-      color:     Pal.gold,
-      onTap:     _showRewardedAd,
-    ),
-    const SizedBox(height: 12),
-
-    // כפתור 2: Rewarded Interstitial עם דילוג
-    _AdButton(
-      loading:   _loadingRewardedInterstitial,
-      available: _rewardedInterstitialAd != null,
-      emoji:     '⏩',
-      title:     'Short ad',
-      reward:    '+1 🧠',
-      subtitle:  'Can skip after a few sec',
-      color:     const Color(0xFF4D96FF),
-      onTap:     _showRewardedInterstitialAd,
-    ),
-    const SizedBox(height: 14),
-
-    TextButton(
-      onPressed: () => Navigator.pop(context),
-      child: const Text('No thanks', style: TextStyle(color: Pal.ts))),
-  ]);
-
-  // ── מסך סיום ─────────────────────────────────────────────────────────────
-  Widget _doneView() => Column(mainAxisSize: MainAxisSize.min, children: [
-    ScaleTransition(
-      scale: CurvedAnimation(parent: _anim, curve: Curves.easeOutBack),
-      child: const Text('🧠', style: TextStyle(fontSize: 72))),
-    const SizedBox(height: 14),
-    FadeTransition(
-      opacity: _anim,
-      child: Text('+$_earnedEnergy Energy!',
-        style: const TextStyle(color: Pal.gold, fontSize: 24, fontWeight: FontWeight.w900))),
-  ]);
 }
 
 // ── ווידג'ט עזר: כפתור פרסומת ────────────────────────────────────────────
@@ -1989,6 +2075,58 @@ class MistakesScreen extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════
+//  COUNTDOWN CLOCK (analog-style circular timer)
+// ═══════════════════════════════════════════════
+class _CountdownClock extends StatefulWidget {
+  const _CountdownClock();
+  @override State<_CountdownClock> createState() => _CountdownClockState();
+}
+class _CountdownClockState extends State<_CountdownClock> {
+  late final Timer _t;
+  @override void initState() { super.initState(); _t = Timer.periodic(const Duration(seconds:1),(_){if(mounted)setState((){});}); }
+  @override void dispose() { _t.cancel(); super.dispose(); }
+  @override Widget build(BuildContext context) {
+    final secs = EnergyService.instance.secondsUntilNext;
+    final total = Cfg.energyRechargeMins * 60;
+    final progress = total > 0 ? secs / total : 0.0;
+    final m = secs ~/ 60, s = secs % 60;
+    return Column(children: [
+      SizedBox(width:150, height:150, child: Stack(alignment:Alignment.center, children:[
+        CustomPaint(size:const Size(150,150), painter:_ClockPainter(progress:progress)),
+        const Text('\u{1F9E0}', style:TextStyle(fontSize:38)),
+      ])),
+      const SizedBox(height:12),
+      Text('${m.toString().padLeft(2,'0')}:${s.toString().padLeft(2,'0')}',
+        style:const TextStyle(color:Pal.gold, fontSize:32, fontWeight:FontWeight.w900)),
+      const SizedBox(height:4),
+      const Text('until next brain', style:TextStyle(color:Pal.ts, fontSize:13)),
+    ]);
+  }
+}
+class _ClockPainter extends CustomPainter {
+  final double progress;
+  const _ClockPainter({required this.progress});
+  @override void paint(Canvas canvas, Size size) {
+    final c = Offset(size.width/2, size.height/2);
+    final r = size.width/2 - 10;
+    canvas.drawArc(Rect.fromCircle(center:c,radius:r), -pi/2, 2*pi, false,
+      Paint()..color=const Color(0xFF2A3A6E)..style=PaintingStyle.stroke..strokeWidth=10..strokeCap=StrokeCap.round);
+    if (progress > 0.002) {
+      canvas.drawArc(Rect.fromCircle(center:c,radius:r), -pi/2, 2*pi*progress, false,
+        Paint()..color=Pal.gold..style=PaintingStyle.stroke..strokeWidth=10..strokeCap=StrokeCap.round);
+    }
+    for (int i=0;i<12;i++) {
+      final a = (i*30-90)*pi/180;
+      canvas.drawLine(
+        Offset(c.dx+(r+8)*cos(a), c.dy+(r+8)*sin(a)),
+        Offset(c.dx+(r-4)*cos(a), c.dy+(r-4)*sin(a)),
+        Paint()..color=Colors.white.withOpacity(0.2)..strokeWidth=1.5);
+    }
+  }
+  @override bool shouldRepaint(covariant _ClockPainter old) => old.progress != progress;
+}
+
+// ═══════════════════════════════════════════════
 //  NO ENERGY SCREEN
 // ═══════════════════════════════════════════════
 class NoEnergyScreen extends StatefulWidget {
@@ -2009,88 +2147,63 @@ class _NES extends State<NoEnergyScreen> with SingleTickerProviderStateMixin {
   @override Widget build(BuildContext context){
     final e=EnergyService.instance;
     final isPro=PurchaseService.instance.isPremium;
+    void openPaywall(){
+      Navigator.pop(context);
+      showModalBottomSheet(context:context,isScrollControlled:true,backgroundColor:Colors.transparent,
+        builder:(_)=>const PaywallSheet());
+    }
     return Scaffold(backgroundColor:Pal.bg,body:Stack(children:[
       const StarField(),
       SafeArea(child:Column(children:[
         Padding(padding:const EdgeInsets.fromLTRB(16,12,16,0),
           child:Row(children:[_iconBtn(Icons.arrow_back,()=>Navigator.pop(context))])),
-        Expanded(child:Center(child:SingleChildScrollView(padding:const EdgeInsets.all(28),child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[
-          ScaleTransition(scale:CurvedAnimation(parent:_c,curve:Curves.easeOutBack),
-            child:const Text('\u26A1',style:TextStyle(fontSize:80))),
-          const SizedBox(height:16),
-      FadeTransition(opacity:_c,child:const Text('Out of Brains!',style:TextStyle(color:Pal.red,fontSize:30,fontWeight:FontWeight.w900))),
-          const SizedBox(height:20),
-          Container(
-            width:double.infinity,
-            padding:const EdgeInsets.all(20),
-            decoration:BoxDecoration(color:Pal.card,borderRadius:BorderRadius.circular(20),
-              border:Border.all(color:Pal.ts.withOpacity(0.2))),
-            child:Column(children:[
-              Row(mainAxisAlignment:MainAxisAlignment.center,children:[
-                const Text('\u26A1',style:TextStyle(fontSize:20)),const SizedBox(width:8),
-                Text('Brains: ${e.energy} / ${e.maxE}',
-                  
-                  style:const TextStyle(color:Pal.tp,fontSize:17,fontWeight:FontWeight.w700)),
-              ]),
-              const SizedBox(height:14),
-              const Divider(color:Color(0x222A3A6E)),
-              const SizedBox(height:14),
-              Text(
-                isPro ? '3 brains refill every 15 min' : '1 brain added every 15 min',
-                textAlign:TextAlign.center,
-                style:const TextStyle(color:Pal.ts,fontSize:14,height:1.5)),
-              if(e.label.isNotEmpty)...[
-                const SizedBox(height:10),
-                Container(
-                  padding:const EdgeInsets.symmetric(horizontal:16,vertical:10),
-                  decoration:BoxDecoration(color:Pal.gold.withOpacity(0.1),borderRadius:BorderRadius.circular(12),
-                    border:Border.all(color:Pal.gold.withOpacity(0.3))),
-                  child:Text('Next brain in: ${e.label}',
-                    style:const TextStyle(color:Pal.gold,fontSize:15,fontWeight:FontWeight.w700))),
-              ],
-            ])),
-          const SizedBox(height:20),
-          if(!isPro)...[
-            Container(
-              width:double.infinity,
-              padding:const EdgeInsets.all(20),
-              decoration:BoxDecoration(
-                gradient:LinearGradient(colors:[Pal.premium.withOpacity(0.18),Pal.premium.withOpacity(0.04)]),
-                borderRadius:BorderRadius.circular(20),
-                border:Border.all(color:Pal.premium.withOpacity(0.5))),
-              child:Column(children:[
-                const Text('👑  Get Pro',
-                  style:TextStyle(color:Pal.premium,fontSize:18,fontWeight:FontWeight.w900)),
-                const SizedBox(height:10),
-                Text(
-                  '50 brains instead of 15\n3 brains refill every 15 min',
-                  textAlign:TextAlign.center,
-                  style:const TextStyle(color:Pal.ts,fontSize:13,height:1.6)),
-                const SizedBox(height:16),
-                GestureDetector(
-                  onTap:(){
-                    Navigator.pop(context);
-                    showModalBottomSheet(context:context,isScrollControlled:true,backgroundColor:Colors.transparent,
-                      builder:(_)=>const PaywallSheet());
-                  },
-                  child:Container(width:double.infinity,
-                    padding:const EdgeInsets.symmetric(vertical:14),
-                    decoration:BoxDecoration(
-                      gradient:const LinearGradient(colors:[Color(0xFFFF9F0A),Color(0xFFFF6B00)]),
-                      borderRadius:BorderRadius.circular(14)),
-                    child:const Text('Buy Pro',
-                      textAlign:TextAlign.center,
-                      style:TextStyle(color:Colors.white,fontSize:16,fontWeight:FontWeight.w900)))),
-              ])),
-            const SizedBox(height:16),
+        Expanded(child:Center(child:SingleChildScrollView(padding:const EdgeInsets.symmetric(horizontal:28,vertical:20),child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[
+          FadeTransition(opacity:_c,child:const Text('Out of Brains!',
+            style:TextStyle(color:Pal.tp,fontSize:26,fontWeight:FontWeight.w900))),
+          const SizedBox(height:6),
+          Text('\u{1F9E0} ${e.energy}/${e.maxE}',style:const TextStyle(color:Pal.ts,fontSize:15)),
+          const SizedBox(height:28),
+          const _CountdownClock(),
+          const SizedBox(height:28),
+          if(e.canWatchAd)...[
+            GestureDetector(
+              onTap:()=>showDialog(context:context,builder:(_)=>_AdRewardDialog()),
+              child:Container(
+                width:double.infinity,
+                padding:const EdgeInsets.symmetric(vertical:16),
+                decoration:BoxDecoration(
+                  color:Pal.gold.withOpacity(0.12),
+                  border:Border.all(color:Pal.gold.withOpacity(0.6),width:1.5),
+                  borderRadius:BorderRadius.circular(18)),
+                child:const Column(children:[
+                  Text('\u{1F3AC}  Watch a video',style:TextStyle(color:Pal.gold,fontSize:17,fontWeight:FontWeight.w800)),
+                  SizedBox(height:4),
+                  Text('+2 \u{1F9E0} Brains instantly',style:TextStyle(color:Pal.ts,fontSize:13)),
+                ]))),
+            const SizedBox(height:14),
           ],
+          if(!isPro)
+            GestureDetector(
+              onTap:openPaywall,
+              child:Container(
+                width:double.infinity,
+                padding:const EdgeInsets.symmetric(vertical:16),
+                decoration:BoxDecoration(
+                  gradient:const LinearGradient(colors:[Color(0xFFFF9F0A),Color(0xFFFF6B00)]),
+                  borderRadius:BorderRadius.circular(18),
+                  boxShadow:[BoxShadow(color:Pal.premium.withOpacity(0.4),blurRadius:16,offset:const Offset(0,4))]),
+                child:const Column(children:[
+                  Text('\u{1F451}  Get Pro',style:TextStyle(color:Colors.white,fontSize:17,fontWeight:FontWeight.w900)),
+                  SizedBox(height:4),
+                  Text('50 brains · faster refill · no ads',style:TextStyle(color:Colors.white70,fontSize:12)),
+                ]))),
+          const SizedBox(height:20),
           _outBtn('Back',()=>Navigator.pop(context)),
         ])))),
       ])),
     ]));
   }
 }
-
 //  PAYWALL
 // ═══════════════════════════════════════════════
 class PaywallSheet extends StatefulWidget {
