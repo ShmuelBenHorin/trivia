@@ -405,7 +405,14 @@ class GameState extends ChangeNotifier {
   final List<Question> _failedQs=[];
   List<Question> get failedQuestions=>List.from(_failedQs);
   GameState({required this.levelIdx,required this.diff,List<Question>? retryWith}){
-    _queue=List<Question>.from(retryWith??QRepo.forLevel(levelIdx,diff));
+    if(retryWith!=null){
+      final failedIds=retryWith.map((q)=>q.id).toSet();
+      final fresh=QRepo.forLevel(levelIdx,diff).where((q)=>!failedIds.contains(q.id)).toList();
+      final needed=(Cfg.questionsPerLevel-retryWith.length).clamp(0,Cfg.questionsPerLevel);
+      _queue=[...retryWith,...fresh.take(needed)];
+    } else {
+      _queue=List<Question>.from(QRepo.forLevel(levelIdx,diff));
+    }
     _originalTotal=_queue.length;
     _startTimer();
   }
