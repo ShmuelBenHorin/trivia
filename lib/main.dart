@@ -705,7 +705,13 @@ class _EnergyChipState extends State<EnergyChip> with SingleTickerProviderStateM
         animation: _scale,
         builder: (_, child) => Transform.scale(scale: _scale.value, child: child),
         child: GestureDetector(
-          onTap: e.canWatchAd ? () => _showAdDialog(context) : null,
+          onTap: () {
+            if (e.canWatchAd) {
+              _showAdDialog(context);
+            } else if (!e.has && !PurchaseService.instance.isPremium) {
+              Navigator.push(context, _slide(const NoEnergyScreen()));
+            }
+          },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
@@ -985,6 +991,23 @@ class _HS extends State<HomeScreen> with TickerProviderStateMixin {
                     Icon(Icons.chevron_right,color:color,size:18),
                   ]))));
           }).toList(),
+          const SizedBox(height:16),
+          if(!PurchaseService.instance.isPremium)
+            ListenableBuilder(listenable:PurchaseService.instance,builder:(_,__)=>
+              GestureDetector(
+                onTap:()=>showModalBottomSheet(context:context,isScrollControlled:true,backgroundColor:Colors.transparent,builder:(_)=>const PaywallSheet()),
+                child:Container(
+                  width:double.infinity,
+                  padding:const EdgeInsets.symmetric(vertical:16),
+                  decoration:BoxDecoration(
+                    gradient:const LinearGradient(colors:[Color(0xFFFF9F0A),Color(0xFFFF6B00)]),
+                    borderRadius:BorderRadius.circular(18),
+                    boxShadow:[BoxShadow(color:Pal.premium.withOpacity(0.4),blurRadius:16,offset:const Offset(0,4))]),
+                  child:const Column(children:[
+                    Text('👑  Buy Pro',style:TextStyle(color:Colors.white,fontSize:17,fontWeight:FontWeight.w900)),
+                    SizedBox(height:4),
+                    Text('Brains · Fast recharge · No ads',style:TextStyle(color:Colors.white70,fontSize:12)),
+                  ])))),
           const SizedBox(height:24),
         ]))),
       ])),
