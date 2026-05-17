@@ -70,7 +70,7 @@ extension DiffX on Diff {
   String get label   => ['Easy', 'Medium', 'Hard'][index];
   Color  get color   => [const Color(0xFF2ECC71), const Color(0xFF4D96FF), const Color(0xFFE74C3C)][index];
   bool   get isPrem  => this == Diff.hard;
-  String get emoji   => ['🟢', '🔵', '🔴'][index];
+  String get emoji   => ['🤡', '🔵', '🔴'][index];
 }
 
 // ═══════════════════════════════════════════════
@@ -205,7 +205,7 @@ class LevelService extends ChangeNotifier {
     final prevStart = (seg-1)*Cfg.segmentSize;
     int prevStars = 0;
     for(int i=prevStart;i<prevStart+Cfg.segmentSize;i++) prevStars+=starsFor(d,i);
-    return prevStars >= Cfg.starsPerSegment;
+    return prevStars >= seg * Cfg.starsPerSegment;
   }
   // Returns "X/10 ⭐" label for a locked node
   String segmentProgress(Diff d, int idx) {
@@ -214,7 +214,7 @@ class LevelService extends ChangeNotifier {
     final prevStart = (seg-1)*Cfg.segmentSize;
     int prevStars = 0;
     for(int i=prevStart;i<prevStart+Cfg.segmentSize;i++) prevStars+=starsFor(d,i);
-    return "$prevStars/${Cfg.starsPerSegment} ⭐";
+    return "$prevStars/${seg * Cfg.starsPerSegment} ⭐";
   }
   Future<void> save(Diff d,int idx,int stars) async {
     if (stars>starsFor(d,idx)) {
@@ -579,7 +579,7 @@ class _EnergyChipState extends State<EnergyChip> with SingleTickerProviderStateM
               color: Pal.card, borderRadius: BorderRadius.circular(20),
               border: Border.all(color: c.withOpacity(0.6), width: 1.5)),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Text('\u26A1', style: TextStyle(fontSize: 14, color: c)),
+              Text('\u{1F9E0}', style: TextStyle(fontSize: 14, color: c)),
               const SizedBox(width: 4),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
@@ -715,9 +715,9 @@ class _AdRewardDialogState extends State<_AdRewardDialog>
 
   // ── מסך ראשי עם שני כפתורים ──────────────────────────────────────────────
   Widget _mainView() => Column(mainAxisSize: MainAxisSize.min, children: [
-    const Text('⚡', style: TextStyle(fontSize: 48)),
+    const Text('🧠', style: TextStyle(fontSize: 48)),
     const SizedBox(height: 10),
-    const Text('Get Energy',
+    const Text('Get Brains',
       style: TextStyle(color: Pal.tp, fontSize: 22, fontWeight: FontWeight.w800)),
     const SizedBox(height: 4),
     const Text('Choose an ad to watch',
@@ -730,7 +730,7 @@ class _AdRewardDialogState extends State<_AdRewardDialog>
       available: _rewardedAd != null,
       emoji:     '🎬',
       title:     'Full video',
-      reward:    '+5 ⚡',
+      reward:    '+5 🧠',
       subtitle:  'Cannot skip · ~30 sec',
       color:     Pal.gold,
       onTap:     _showRewardedAd,
@@ -743,7 +743,7 @@ class _AdRewardDialogState extends State<_AdRewardDialog>
       available: _rewardedInterstitialAd != null,
       emoji:     '⏩',
       title:     'Short ad',
-      reward:    '+1 ⚡',
+      reward:    '+1 🧠',
       subtitle:  'Can skip after a few sec',
       color:     const Color(0xFF4D96FF),
       onTap:     _showRewardedInterstitialAd,
@@ -759,7 +759,7 @@ class _AdRewardDialogState extends State<_AdRewardDialog>
   Widget _doneView() => Column(mainAxisSize: MainAxisSize.min, children: [
     ScaleTransition(
       scale: CurvedAnimation(parent: _anim, curve: Curves.easeOutBack),
-      child: const Text('⚡', style: TextStyle(fontSize: 72))),
+      child: const Text('🧠', style: TextStyle(fontSize: 72))),
     const SizedBox(height: 14),
     FadeTransition(
       opacity: _anim,
@@ -1537,7 +1537,7 @@ class _GS extends State<GameScreen> with TickerProviderStateMixin {
                     border:Border.all(color:Pal.red.withOpacity(0.6),width:2),
                     boxShadow:[BoxShadow(color:Pal.red.withOpacity(0.35),blurRadius:24,spreadRadius:4)]),
                   child:Row(mainAxisSize:MainAxisSize.min,children:[
-                    const Text('⚡',style:TextStyle(fontSize:28)),
+                    const Text('🧠',style:TextStyle(fontSize:28)),
                     const SizedBox(width:6),
                     Text('−1',style:TextStyle(fontSize:32,fontWeight:FontWeight.w900,color:Pal.red,
                       shadows:[Shadow(color:Pal.red.withOpacity(0.8),blurRadius:12)])),
@@ -2018,7 +2018,7 @@ class _NES extends State<NoEnergyScreen> with SingleTickerProviderStateMixin {
           ScaleTransition(scale:CurvedAnimation(parent:_c,curve:Curves.easeOutBack),
             child:const Text('\u26A1',style:TextStyle(fontSize:80))),
           const SizedBox(height:16),
-      FadeTransition(opacity:_c,child:const Text('Out of Energy!',style:TextStyle(color:Pal.red,fontSize:30,fontWeight:FontWeight.w900))),
+      FadeTransition(opacity:_c,child:const Text('Out of Brains!',style:TextStyle(color:Pal.red,fontSize:30,fontWeight:FontWeight.w900))),
           const SizedBox(height:20),
           Container(
             width:double.infinity,
@@ -2028,7 +2028,7 @@ class _NES extends State<NoEnergyScreen> with SingleTickerProviderStateMixin {
             child:Column(children:[
               Row(mainAxisAlignment:MainAxisAlignment.center,children:[
                 const Text('\u26A1',style:TextStyle(fontSize:20)),const SizedBox(width:8),
-                Text('Energy: ${e.energy} / ${e.maxE}',
+                Text('Brains: ${e.energy} / ${e.maxE}',
                   
                   style:const TextStyle(color:Pal.tp,fontSize:17,fontWeight:FontWeight.w700)),
               ]),
@@ -2036,7 +2036,7 @@ class _NES extends State<NoEnergyScreen> with SingleTickerProviderStateMixin {
               const Divider(color:Color(0x222A3A6E)),
               const SizedBox(height:14),
               Text(
-                isPro ? '3 energy refill every 15 min' : '1 energy added every 15 min',
+                isPro ? '3 brains refill every 15 min' : '1 brain added every 15 min',
                 textAlign:TextAlign.center,
                 style:const TextStyle(color:Pal.ts,fontSize:14,height:1.5)),
               if(e.label.isNotEmpty)...[
@@ -2045,7 +2045,7 @@ class _NES extends State<NoEnergyScreen> with SingleTickerProviderStateMixin {
                   padding:const EdgeInsets.symmetric(horizontal:16,vertical:10),
                   decoration:BoxDecoration(color:Pal.gold.withOpacity(0.1),borderRadius:BorderRadius.circular(12),
                     border:Border.all(color:Pal.gold.withOpacity(0.3))),
-                  child:Text('Next refill: ${e.label}',
+                  child:Text('Next brain in: ${e.label}',
                     style:const TextStyle(color:Pal.gold,fontSize:15,fontWeight:FontWeight.w700))),
               ],
             ])),
@@ -2063,7 +2063,7 @@ class _NES extends State<NoEnergyScreen> with SingleTickerProviderStateMixin {
                   style:TextStyle(color:Pal.premium,fontSize:18,fontWeight:FontWeight.w900)),
                 const SizedBox(height:10),
                 Text(
-                  'Max energy: 50 instead of 15\n3 energy refill every 15 min',
+                  '50 brains instead of 15\n3 brains refill every 15 min',
                   textAlign:TextAlign.center,
                   style:const TextStyle(color:Pal.ts,fontSize:13,height:1.6)),
                 const SizedBox(height:16),
@@ -2121,8 +2121,8 @@ class _PS extends State<PaywallSheet>{
           const Text('\$4.99/month',style:TextStyle(color:Pal.premium,fontSize:18,fontWeight:FontWeight.w700)),
           const SizedBox(height:24),
           _bf('🔴','Hard levels unlocked'),
-          _bf('⚡','50 energy — 3x more than normal'),
-          _bf('🔄','3 energy refill every 15 min'),
+          _bf('🧠','50 brains — 3x more than normal'),
+          _bf('🔄','3 brains refill every 15 min'),
           _bf('🚫','No ads'),
           _bf('🔓','All future content included'),
           const SizedBox(height:24),
@@ -2499,7 +2499,7 @@ class _CQState extends State<CategoryQuizScreen> with TickerProviderStateMixin {
                           boxShadow: [BoxShadow(color: Pal.red.withOpacity(0.35), blurRadius:24, spreadRadius:4)],
                         ),
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          const Text('⚡', style: TextStyle(fontSize:28)),
+                          const Text('🧠', style: TextStyle(fontSize:28)),
                           const SizedBox(width:6),
                           Text('−1', style: TextStyle(
                             fontSize: 32, fontWeight: FontWeight.w900,
